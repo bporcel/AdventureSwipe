@@ -1,5 +1,7 @@
+const API_URL = 'https://adventureswipe.onrender.com'
+
 export async function generateNextNode({ currentNode, choice, history }) {
-    const res = await fetch("http://192.168.0.20:5000/next", {
+    const res = await fetch(`${API_URL}:5000/next`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ currentNode, choice, history }),

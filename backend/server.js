@@ -145,6 +145,9 @@ const getImage = async (image) => {
     );
 }
 
+app.get("/", (req, res) => {
+    res.send("AdventureSwipe backend is running.");
+  });
 
 app.listen(process.env.PORT || 5000, () =>
     console.log(`✅ Backend running on port ${process.env.PORT || 5000}`)
