@@ -4,23 +4,13 @@ import { loadSave } from "../../common/storage";
 
 export default function StartScreen({ onStart, onContinue }) {
   const [hasSave, setHasSave] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       const save = await loadSave();
       setHasSave(!!save);
-      setLoading(false);
     })();
   }, []);
-
-  if (loading)
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator />
-        <Text style={{ marginTop: 10 }}>Checking save...</Text>
-      </View>
-    );
 
   return (
     <View style={styles.container}>
