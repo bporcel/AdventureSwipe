@@ -103,10 +103,10 @@ app.post("/next", async (req, res) => {
                 text: `Lorem ipsum dolor sit amet, 
                 consectetur adipiscing elit,
                 laboris nisi ut aliquip ex ea commodo consequat. - ${Math.random()}`,
-                image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1920&auto=format&fit=crop&ixlib=rb-4.0.3&s=7c5b81a5b03a6c2e1e6f7d1f4d7b9b1d",
+                image: "https://placehold.co/400x400/png",
                 choices: {
-                    right: 'right',
-                    left: 'left',
+                    right: 'very very longo jejejejejejej right',
+                    left: 'same lmao lmoa lmao lmao lma left',
                 }
             }
 
@@ -143,7 +143,7 @@ app.get("/new-game", async (req, res) => {
                 text: `Lorem ipsum dolor sit amet, 
                 consectetur adipiscing elit,
                 laboris nisi ut aliquip ex ea commodo consequat. - ${Math.random()}`,
-                image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1920&auto=format&fit=crop&ixlib=rb-4.0.3&s=7c5b81a5b03a6c2e1e6f7d1f4d7b9b1d",
+                image: "https://placehold.co/400x400/png",
                 choices: {
                     right: 'right',
                     left: 'left',

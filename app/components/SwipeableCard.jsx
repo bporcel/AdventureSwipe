@@ -9,10 +9,6 @@ export default function SwipeableCard({ text, onSwipe }) {
     const { panGesture, animatedStyle } = useSwipe(onSwipe);
     const [isAllTextDisplayed, setIsAllTextDisplayed] = useState(false);
 
-        // useEffect(() => {
-        //     setIsAllTextDisplayed(false);
-        // }, [text]);
-
     const handlePress = () => {
         if (!isAllTextDisplayed) {
             setIsAllTextDisplayed(true);
@@ -56,6 +52,5 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.08,
         shadowRadius: 10,
         minHeight: 200,
-        // maxHeight: 200
     },
 });

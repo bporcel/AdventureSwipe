@@ -20,7 +20,7 @@ const TOP_IMAGE_HEIGHT = SCREEN_H * 0.55;
 const INITIAL_NODE = {
     id: "start",
     image:
-        "https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1920&auto=format&fit=crop",
+        "https://placehold.co/400x400/png",
     text:
         "You wake up in a mossy clearing beneath a ring of ancient oaks. To your right a narrow path disappears into fog; to your left, a ruined stone wall with strange runes.",
     choices: {
@@ -94,8 +94,12 @@ export default function GameScreen({ onExit }) {
                     <View>
                         <SwipeableCard text={node.text} onSwipe={handleChoice} />
                         <View style={styles.hintRow}>
-                            <Text style={styles.hint}>{node.choices.left} ←</Text>
-                            <Text style={styles.hint}>→ {node.choices.right}</Text>
+                            <View style={[styles.hintBox, { marginRight: 5 }]}>
+                                <Text style={styles.hint}>{'\u276E'} {node.choices.left}</Text>
+                            </View>
+                            <View style={[styles.hintBox, { marginLeft: 5 }]}>
+                                <Text style={styles.hint}>{node.choices.right} {'\u276F'}</Text>
+                            </View>
                         </View>
                     </View>
                 )}
@@ -117,10 +121,20 @@ export default function GameScreen({ onExit }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#fafafa" },
-    top: { height: TOP_IMAGE_HEIGHT },
-    image: { flex: 1 },
-    topOverlay: { marginTop: 48, paddingHorizontal: 16 },
+    container: {
+        flex: 1,
+        backgroundColor: "#fafafa"
+    },
+    top: {
+        height: TOP_IMAGE_HEIGHT
+    },
+    image: {
+        flex: 1
+    },
+    topOverlay: {
+        marginTop: 48,
+        paddingHorizontal: 16
+    },
     appTitle: {
         fontSize: 22,
         fontWeight: "700",
@@ -135,13 +149,31 @@ const styles = StyleSheet.create({
         justifyContent: "center"
     },
     hintRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
+        flexDirection: 'row',
         marginTop: 10,
-        paddingHorizontal: 20,
     },
-    hint: { fontSize: 13, color: "#666" },
-    controls: { marginTop: 16, flexDirection: "row", justifyContent: "space-between" },
+    hintBox: {
+        flex: 1,
+        padding: 20,
+        borderRadius: 14,
+        borderWidth: 2,
+        borderColor: 'rgba(68, 67, 71, 0.51)',
+        backgroundColor: 'rgba(68, 67, 71, 0.08)', // translucent box
+        borderRadius: 8,
+        paddingVertical: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    hint: {
+        fontSize: 13,
+        color: '#333',
+        fontWeight: '500',
+    },
+    controls: {
+        marginTop: 16,
+        flexDirection: "row",
+        justifyContent: "space-between"
+    },
     btn: {
         paddingVertical: 10,
         paddingHorizontal: 18,
@@ -149,14 +181,26 @@ const styles = StyleSheet.create({
         minWidth: 110,
         alignItems: "center",
     },
-    btnText: { fontWeight: "600" },
+    btnText: {
+        fontWeight: "600"
+    },
     footerRow: {
         marginTop: 12,
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
     },
-    smallLink: { color: "#0a84ff" },
-    center: { flex: 1, justifyContent: "center", alignItems: "center" },
-    rightAction: { width: 50, height: 50, backgroundColor: 'purple' },
+    smallLink: {
+        color: "#0a84ff"
+    },
+    center: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    rightAction: {
+        width: 50,
+        height: 50,
+        backgroundColor: 'purple'
+    },
 });
