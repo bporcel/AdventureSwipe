@@ -7,6 +7,7 @@ import {
     Dimensions,
     TouchableOpacity,
     ActivityIndicator,
+    ScrollView
 } from "react-native";
 import { loadSave, saveGame, clearSave } from "../../common/storage";
 import { generateNextNode, generateNewGameNode } from "../../common/api";
@@ -91,7 +92,7 @@ export default function GameScreen({ onExit }) {
                 {loading ? (
                     <ActivityIndicator style={{ marginTop: 12 }} />
                 ) : (
-                    <View>
+                    <ScrollView>
                         <SwipeableCard text={node.text} onSwipe={handleChoice} />
                         <View style={styles.hintRow}>
                             <View style={[styles.hintBox, { marginRight: 5 }]}>
@@ -101,7 +102,7 @@ export default function GameScreen({ onExit }) {
                                 <Text style={styles.hint}>{node.choices.right} {'\u276F'}</Text>
                             </View>
                         </View>
-                    </View>
+                    </ScrollView>
                 )}
 
                 <View style={styles.footerRow}>
@@ -144,9 +145,9 @@ const styles = StyleSheet.create({
         textShadowRadius: 6,
     },
     bottom: {
-        flex: 1,
+        flex: 2,
+        justifyContent: 'space-between',
         padding: 16,
-        justifyContent: "center"
     },
     hintRow: {
         flexDirection: 'row',
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
         borderRadius: 14,
         borderWidth: 2,
         borderColor: 'rgba(68, 67, 71, 0.51)',
-        backgroundColor: 'rgba(68, 67, 71, 0.08)', // translucent box
+        backgroundColor: 'rgba(68, 67, 71, 0.08)',
         borderRadius: 8,
         paddingVertical: 8,
         alignItems: 'center',
@@ -192,15 +193,5 @@ const styles = StyleSheet.create({
     },
     smallLink: {
         color: "#0a84ff"
-    },
-    center: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center"
-    },
-    rightAction: {
-        width: 50,
-        height: 50,
-        backgroundColor: 'purple'
     },
 });

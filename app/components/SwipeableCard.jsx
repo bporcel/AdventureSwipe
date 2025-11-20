@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Text, StyleSheet, Pressable } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
@@ -19,18 +19,18 @@ export default function SwipeableCard({ text, onSwipe }) {
         <GestureDetector gesture={panGesture}>
             <Pressable onPress={handlePress}>
                 <Animated.View style={[styles.card, animatedStyle]}>
-                    {isAllTextDisplayed ? (
-                        <Text style={styles.storyText}>{text}</Text>
-                    ) : (
-                        <TypeWriter
-                            style={styles.storyText}
-                            typing={1}
-                            maxDelay={2}
-                            onTypingEnd={() => setIsAllTextDisplayed(true)}
-                        >
-                            {text}
-                        </TypeWriter>
-                    )}
+                        {isAllTextDisplayed ? (
+                            <Text style={styles.storyText}>{text}</Text>
+                        ) : (
+                            <TypeWriter
+                                style={styles.storyText}
+                                typing={1}
+                                maxDelay={2}
+                                onTypingEnd={() => setIsAllTextDisplayed(true)}
+                            >
+                                {text}
+                            </TypeWriter>
+                        )}
                 </Animated.View>
             </Pressable>
         </GestureDetector>
@@ -52,5 +52,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.08,
         shadowRadius: 10,
         minHeight: 200,
+        marginBottom: 16,
     },
 });
