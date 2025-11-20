@@ -55,6 +55,15 @@ export default function GameScreen({ onExit }) {
         setHistory((h) => [...h, node]);
     }, [node]);
 
+    const onNewGame = async () => {
+        setLoading(true);
+        await clearSave();
+        setHistory([]);
+        const newNode = await generateNewGameNode();
+        setNode(newNode);
+        setLoading(false);
+    };
+
     async function handleChoice(choice) {
         setLoading(true);
         try {
@@ -66,15 +75,6 @@ export default function GameScreen({ onExit }) {
             setLoading(false);
         }
     }
-
-    const onNewGame = async () => {
-        setLoading(true);
-        await clearSave();
-        setHistory([]);
-        const newNode = await generateNewGameNode();
-        setNode(newNode);
-        setLoading(false);
-    };
 
     if (showHistory) {
         return <HistoryScreen history={history} onClose={() => setShowHistory(false)} />;
@@ -92,7 +92,7 @@ export default function GameScreen({ onExit }) {
                     <ActivityIndicator style={{ marginTop: 12 }} />
                 ) : (
                     <View>
-                        <SwipeableCard node={node} onSwipe={handleChoice} />
+                        <SwipeableCard text={node.text} onSwipe={handleChoice} />
                         <View style={styles.hintRow}>
                             <Text style={styles.hint}>{node.choices.left} ←</Text>
                             <Text style={styles.hint}>→ {node.choices.right}</Text>

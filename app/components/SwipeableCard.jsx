@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, StyleSheet, Pressable } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import TypeWriter from 'react-native-typewriter'
 import useSwipe from '../hooks/useSwipe'
 
-export default function SwipeableCard({ node, onSwipe }) {
+export default function SwipeableCard({ text, onSwipe }) {
     const { panGesture, animatedStyle } = useSwipe(onSwipe);
     const [isAllTextDisplayed, setIsAllTextDisplayed] = useState(false);
+
+        // useEffect(() => {
+        //     setIsAllTextDisplayed(false);
+        // }, [text]);
 
     const handlePress = () => {
         if (!isAllTextDisplayed) {
@@ -20,7 +24,7 @@ export default function SwipeableCard({ node, onSwipe }) {
             <Pressable onPress={handlePress}>
                 <Animated.View style={[styles.card, animatedStyle]}>
                     {isAllTextDisplayed ? (
-                        <Text style={styles.storyText}>{node.text}</Text>
+                        <Text style={styles.storyText}>{text}</Text>
                     ) : (
                         <TypeWriter
                             style={styles.storyText}
@@ -28,7 +32,7 @@ export default function SwipeableCard({ node, onSwipe }) {
                             maxDelay={2}
                             onTypingEnd={() => setIsAllTextDisplayed(true)}
                         >
-                            {node.text}
+                            {text}
                         </TypeWriter>
                     )}
                 </Animated.View>
