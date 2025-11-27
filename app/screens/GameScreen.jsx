@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     View
 } from "react-native";
+import { useAudioPlayer } from 'expo-audio';
 import { generateNewGameNode, generateNextNode } from "../../common/api";
 import { clearSave, loadSave, saveGame } from "../../common/storage";
 import SwipeableCard from '../components/SwipeableCard';
@@ -38,10 +39,15 @@ export default function GameScreen({ onExit }) {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
+    const player = useAudioPlayer('https://musicfile.api.box/YzA3ZjcwYjgtNWRlNy00MTg4LWI4NjItYjY2ZTZiNGFiYjA1.mp3');
 
     const depth = useRef(0);
 
     useEffect(() => {
+        player.seekTo(0);
+        player.loop = true;
+        player.play();
+
         (async () => {
             const saved = await loadSave();
             if (saved) {

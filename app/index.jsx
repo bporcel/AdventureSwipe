@@ -1,5 +1,5 @@
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import React, { useState } from "react";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import StartScreen from "./screens/StartScreen";
 import GameScreen from "./screens/GameScreen";
 import { clearSave } from "../common/storage";
