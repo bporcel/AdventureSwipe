@@ -287,7 +287,7 @@ const getStory = async (prompt) => {
 
 const getImage = async (image) => {
     console.log("🖼️ Generating new Gemini image:");
-    if (process.env.NODE_ENV !== 'test_all') return;
+    if (process.env.NODE_ENV === 'test_gpt') return;
 
     // return await limiter.schedule(() =>
     //     ai.models.generateImages({
