@@ -48,11 +48,40 @@ const SYSTEM_PROMPT = `
     - Each new node must follow naturally from the player’s previous action.
     - Scenes must feel directional, not random.
     - The world should react to player actions (consequences, discoveries, dangers, progression).
+    - The story must gradually move toward a resolution: either achieving the main objective (success) or failing it (failure).
+    - Introduce escalating tension, obstacles, and clues so the player can reach an ending within a reasonable number of choices.
 
-    3. **Tone & Style**
+    3. Story Arc & Depth
+    - You will receive a numeric "depth" value representing how far the player is into the story.
+    - Use this to shape the narrative arc:
+    - depth 0–4: Exploration → introduce world, clarify objective, light obstacles.
+    - depth 5–9: Rising Tension → strong challenges, discoveries, growing stakes.
+    - depth 10–13: Climax → confront main threat or final barrier.
+    - depth ≥ 14: Ending → always produce a conclusive ending node.
+    - When in the Ending stage, set "isEnding": true and resolve the main objective with success or failure.
+    - Never stall, loop, or reset the arc.
+
+    4. **Tone & Style**
     - Use atmospheric, sensory descriptions.
     - Keep text concise (max 80 words).
     - Avoid repeating phrases or recapping previous scenes.
+
+    ────────────────────────
+    ENDING RULES (STRICT)
+    ────────────────────────
+    - When you set "isEnding": true, the scene must be a complete and final conclusion.
+    - Do NOT include any choices or questions. The "choices" object must contain empty strings.
+    - The text must resolve the main objective with a clear success or failure.
+    - No ambiguity, no cliffhangers, no invitations for further action.
+    - The ending should feel like the last scene of an adventure, not a setup for another choice.
+
+    ────────────────────────
+    ENDING GUIDANCE
+    ────────────────────────
+    - Ensure the player is always progressing toward an eventual ending.
+    - Build in opportunities for success or failure related to the main objective.
+    - Avoid loops that prevent the story from reaching a conclusion.
+    - Introduce subtle narrative signals that indicate progress or setbacks toward the final outcome.
 
     ────────────────────────
     CHOICE RULES
@@ -82,33 +111,29 @@ const SYSTEM_PROMPT = `
         "choices": {
             "left": "action text for swiping left",
             "right": "action text for swiping right"
-        }
+        },
+        "isEnding": boolean, no commas "indicates when the ending is reached."
     }
 
-    No extra text outside the JSON.
-    No commentary.
-    No explanations.
-    No markdown formatting.
-
-    Keep responses coherent, atmospheric, choice-driven, and consistently tied to the main objective.
+    - No extra text outside the JSON.
+    - No commentary.
+    - No explanations.
+    - No markdown formatting.
+    - Keep responses coherent, atmospheric, choice-driven, and consistently tied to the main objective.
 `;
 
 app.post("/next", async (req, res) => {
     try {
-        const { currentNode, choice, history = [] } = req.body;
+        const { currentNode, choice, history = [], depth } = req.body;
+
+        if (currentNode.isEnding === true) {
+            console.log('ending reached');
+            res.json(currentNode);
+            return;
+        };
 
         if (process.env.NODE_ENV === 'dev') {
-            const result = {
-                id: `${Date.now()}:${choice}`,
-                text: `Lorem ipsum dolor sit amet, 
-                consectetur adipiscing elit,
-                laboris nisi ut aliquip ex ea commodo consequat. - ${Math.random()}`,
-                image: "https://placehold.co/400x400/png",
-                choices: {
-                    right: 'very very longo jejejejejejej right',
-                    left: 'same lmao lmoa lmao lmao lma left',
-                }
-            }
+            const result = buildTestResult();
 
             res.json(result);
         } else {
@@ -119,12 +144,13 @@ app.post("/next", async (req, res) => {
                 if (result) {
                     console.log(`⚡ Returning preloaded node for ${preloadKey}`);
                 } else {
-                    result = await generateNodeForChoice({ currentNode, choice, history });
+                    result = await generateNodeForChoice({ currentNode, choice, history, depth });
                 }
 
                 res.json(result);
-                preloadChoice(result, "left", [...(history || []), result]);
-                preloadChoice(result, "right", [...(history || []), result]);
+
+                preloadChoice(result, "left", [...(history || []), result], depth + 1);
+                preloadChoice(result, "right", [...(history || []), result], depth + 1);
             } catch (e) {
                 console.error("Preload failed with error => ", e)
             }
@@ -138,17 +164,7 @@ app.post("/next", async (req, res) => {
 app.get("/new-game", async (req, res) => {
     try {
         if (process.env.NODE_ENV === 'dev') {
-            const result = {
-                id: Date.now(),
-                text: `Lorem ipsum dolor sit amet, 
-                consectetur adipiscing elit,
-                laboris nisi ut aliquip ex ea commodo consequat. - ${Math.random()}`,
-                image: "https://placehold.co/400x400/png",
-                choices: {
-                    right: 'right',
-                    left: 'left',
-                }
-            }
+            const result = buildTestResult();
 
             res.json(result);
         } else {
@@ -157,8 +173,8 @@ app.get("/new-game", async (req, res) => {
             res.json(result);
 
             try {
-                preloadChoice(result, "right", [result]);
-                preloadChoice(result, "left", [result]);
+                preloadChoice(result, "right", [result], 1);
+                preloadChoice(result, "left", [result], 1);
             } catch (e) {
                 console.error("Preload failed after new game with error => ", e)
             }
@@ -169,9 +185,9 @@ app.get("/new-game", async (req, res) => {
     }
 });
 
-async function generateNodeForChoice({ currentNode = null, choice = 'start', history = [], forcedPrompt = null }) {
+async function generateNodeForChoice({ currentNode = null, choice = 'start', history = [], forcedPrompt = null, depth = 0 }) {
     const recentHistory = history.slice(-5).map((n, i) => `(${i + 1}) ${n.text}`).join("\n");
-    const prompt = createPrompt(recentHistory, currentNode, choice, forcedPrompt);
+    const prompt = createPrompt(recentHistory, currentNode, choice, forcedPrompt, depth);
 
     const storyKey = crypto.createHash("sha256").update(prompt).digest("hex");
     const cachedStory = storyCache.get(storyKey);
@@ -183,34 +199,47 @@ async function generateNodeForChoice({ currentNode = null, choice = 'start', his
     const story = await getStory(prompt);
     const message = story.choices[0].message.content;
     const match = message.match(/\{[\s\S]*\}/);
-    const json = match ? JSON.parse(match[0]) : { text: message, image: "", choices: { left: "Left", right: "Right" } };
+    const json = match ? JSON.parse(match[0]) : { text: message, image: "", choices: { left: "Left", right: "Right" }, isEnding: false };
 
     const imgKey = crypto.createHash("sha256").update(json.image).digest("hex");
     let imageUrl = imageCache.get(imgKey);
 
     if (!imageUrl) {
+        // FOR MODEL imagen-4.0-generate-001
+        // const imgResp = await getImage(json.image);
+        // if (imgResp) {
+        //     const base64Image = imgResp.generatedImages[0].image.imageBytes;
+        //     imageUrl = `data:image/jpeg;base64,${base64Image}`;
+        //     imageCache.set(imgKey, imageUrl);
+        // }
+
+
+        // FOR MODEL gemini-2.5-flash-image
         const imgResp = await getImage(json.image);
 
-        const base64Image = imgResp.generatedImages[0].image.imageBytes;
-        imageUrl = `data:image/jpeg;base64,${base64Image}`;
-        imageCache.set(imgKey, imageUrl);
+        if (imgResp) {
+            const base64Image = imgResp.candidates?.[0]?.content?.parts?.find(part => part.inlineData);
+            imageUrl = `data:${base64Image.inlineData.mimeType};base64,${base64Image.inlineData.data}`;
+            imageCache.set(imgKey, imageUrl);
+        }
     }
 
     const result = {
         id: `${Date.now()}:${choice}`,
         text: json.text.trim(),
-        image: imageUrl || "",
+        image: imageUrl || "https://placehold.co/400x400/png",
         choices: {
             right: json.choices.right,
             left: json.choices.left,
-        }
+        },
+        isEnding: json.isEnding
     }
 
     storyCache.set(storyKey, result);
     return JSON.parse(JSON.stringify(result));
 }
 
-async function preloadChoice(currentNode, choice, history = []) {
+async function preloadChoice(currentNode, choice, history = [], depth) {
     try {
         if (!currentNode) return;
 
@@ -222,20 +251,22 @@ async function preloadChoice(currentNode, choice, history = []) {
         }
 
         console.log(`⏱️ Preloading branch [${choice}] for node ${preloadKey}`);
-        const node = await generateNodeForChoice({ currentNode, choice, history });
+        const node = await generateNodeForChoice({ currentNode, choice, history, depth });
 
         preloadCache.set(preloadKey, node);
         console.log(`✅ Node ${preloadKey} stored in cache`);
     } catch (err) {
-        console.warn("Preload error:", err);
+        console.error("Preload error:", err);
     }
 }
 
-const createPrompt = (recentHistory, currentNode, choice, forcedPrompt) => {
+const createPrompt = (recentHistory, currentNode, choice, forcedPrompt, depth) => {
+    console.log("DEPTH => ", depth)
     const prompt = forcedPrompt || `
-    Previous scenes: ${recentHistory || "None yet."}
-    Current scene: ${currentNode?.text || "The story begins."}
-    Player swiped: ${choice}.
+    Previous scenes: ${recentHistory}
+    Current scene: ${currentNode.text}
+    Player swiped: ${choice} - ${currentNode.choices[choice]}.
+    Current depth: ${depth}
     Describe what happens next.
 `;
 
@@ -256,17 +287,53 @@ const getStory = async (prompt) => {
 
 const getImage = async (image) => {
     console.log("🖼️ Generating new Gemini image:");
-    return await limiter.schedule(() =>
-        ai.models.generateImages({
-            model: "imagen-4.0-generate-001",
-            prompt: image,
+    if (process.env.NODE_ENV !== 'test_all') return;
+
+    // return await limiter.schedule(() =>
+    //     ai.models.generateImages({
+    //         model: "imagen-4.0-generate-001",
+    //         prompt: image,
+    //         config: {
+    //             numberOfImages: 1,
+    //             outputMimeType: "image/jpeg",
+    //             aspectRatio: "1:1",
+    //         },
+    //     })
+    // );
+
+    return await limiter.schedule(async () => {
+        return await ai.models.generateContent({
+            model: "gemini-2.5-flash-image",
+            contents: [
+                {
+                    role: "user",
+                    parts: [{ text: image }]
+                }
+            ],
             config: {
-                numberOfImages: 1,
-                outputMimeType: "image/jpeg",
-                aspectRatio: "1:1",
-            },
-        })
-    );
+                responseModalities: ["IMAGE"],
+                generationConfig: {
+                    temperature: 1.0,
+                }
+            }
+        });
+    });
+}
+
+function buildTestResult() {
+    return {
+        id: `${Date.now()}`,
+        text: `Lorem ipsum dolor sit amet, 
+        consectetur adipiscing elit,
+        laboris nisi ut aliquip ex ea commodo consequat. - ${Math.random()}`,
+        image: "https://placehold.co/400x400/png",
+        choices: {
+            right: 'very very longo jejejejejejej right',
+            left: 'same lmao lmoa lmao lmao lma left',
+        },
+        depth: 0,
+        isEnding: false,
+    }
 }
 
 app.get("/", (req, res) => {

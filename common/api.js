@@ -6,11 +6,12 @@ function stripImages(node) {
   return rest;
 }
 
-export async function generateNextNode({ currentNode, choice, history }) {
+export async function generateNextNode({ currentNode, choice, history, depth }) {
   const payload = {
     currentNode: stripImages(currentNode),
     choice,
     history: history.map(n => stripImages(n)),
+    depth
   };
 
   const res = await fetch(`${API_HOST}/next`, {

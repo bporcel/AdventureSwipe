@@ -14,6 +14,8 @@ export async function loadSave() {
 
 export async function saveGame(data) {
   try {
+    if(data.history.includes(data.node)) return;
+    
     await AsyncStorage.setItem(SAVE_STORAGE_KEY, JSON.stringify(data));
   } catch (e) {
     console.warn("saveGame error", e);

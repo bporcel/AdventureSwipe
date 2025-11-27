@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-    View,
-    Text,
-    StyleSheet,
-    ImageBackground,
-    Dimensions,
-    TouchableOpacity,
     ActivityIndicator,
-    ScrollView
+    Dimensions,
+    ImageBackground,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
-import { loadSave, saveGame, clearSave } from "../../common/storage";
-import { generateNextNode, generateNewGameNode } from "../../common/api";
-import HistoryScreen from "./HistoryScreen"
-import SwipeableCard from '../components/SwipeableCard'
+import { generateNewGameNode, generateNextNode } from "../../common/api";
+import { clearSave, loadSave, saveGame } from "../../common/storage";
+import SwipeableCard from '../components/SwipeableCard';
+import Card from '../components/Card';
+import HistoryScreen from "./HistoryScreen";
 
 
 const { height: SCREEN_H } = Dimensions.get("window");
@@ -27,7 +28,9 @@ const INITIAL_NODE = {
     choices: {
         right: "See were the path takes you",
         left: "Inspect the stone wall"
-    }
+    },
+    depth: 0,
+    isEnding: false
 };
 
 export default function GameScreen({ onExit }) {
@@ -35,6 +38,8 @@ export default function GameScreen({ onExit }) {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
+
+    const depth = useRef(0);
 
     useEffect(() => {
         (async () => {
@@ -62,16 +67,19 @@ export default function GameScreen({ onExit }) {
         setHistory([]);
         const newNode = await generateNewGameNode();
         setNode(newNode);
+        depth.current = 0;
         setLoading(false);
     };
 
     async function handleChoice(choice) {
         setLoading(true);
+        depth.current++;
+
         try {
-            const newNode = await generateNextNode({ currentNode: node, choice, history });
+            const newNode = await generateNextNode({ currentNode: node, choice, history, depth: depth.current });
             setNode(newNode);
         } catch (err) {
-            console.warn(err);
+            console.error(err);
         } finally {
             setLoading(false);
         }
@@ -93,15 +101,21 @@ export default function GameScreen({ onExit }) {
                     <ActivityIndicator style={{ marginTop: 12 }} />
                 ) : (
                     <ScrollView>
-                        <SwipeableCard text={node.text} onSwipe={handleChoice} />
-                        <View style={styles.hintRow}>
-                            <View style={[styles.hintBox, { marginRight: 5 }]}>
-                                <Text style={styles.hint}>{'\u276E'} {node.choices.left}</Text>
+                        {node.isEnding ? (
+                            <Card text={node.text} />
+                        ) : (
+                            <SwipeableCard text={node.text} onSwipe={handleChoice} />
+                        )}
+                        {!node.isEnding &&
+                            <View style={styles.hintRow}>
+                                <View style={[styles.hintBox, { marginRight: 5 }]}>
+                                    <Text style={styles.hint}>{'\u276E'} {node.choices.left}</Text>
+                                </View>
+                                <View style={[styles.hintBox, { marginLeft: 5 }]}>
+                                    <Text style={styles.hint}>{node.choices.right} {'\u276F'}</Text>
+                                </View>
                             </View>
-                            <View style={[styles.hintBox, { marginLeft: 5 }]}>
-                                <Text style={styles.hint}>{node.choices.right} {'\u276F'}</Text>
-                            </View>
-                        </View>
+                        }
                     </ScrollView>
                 )}
 
