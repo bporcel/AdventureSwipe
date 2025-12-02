@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
-import TypeWriter from 'react-native-typewriter'
 
 export default function StoryEndScreen({ history, onBackToMenu, onClose }) {
     const [fullHistory, setFullHistory] = useState(null);
@@ -54,16 +53,21 @@ export default function StoryEndScreen({ history, onBackToMenu, onClose }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1a1a1a',
+        backgroundColor: '#121212',
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,
     },
     title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#fff',
+        fontSize: 36,
+        fontWeight: '800',
+        color: '#E1E1E1',
         marginBottom: 30,
+        textShadowColor: "rgba(187, 134, 252, 0.5)",
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 10,
+        textAlign: "center",
+        letterSpacing: 1,
     },
     statsBox: {
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -73,20 +77,32 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     stat: {
-        fontSize: 16,
-        color: '#fff',
-        marginBottom: 5,
+        fontSize: 18,
+        lineHeight: 28,
+        color: '#ccc',
+        marginBottom: 10,
+        textAlign: "center",
     },
     button: {
-        backgroundColor: '#3a3a3a',
-        paddingVertical: 14,
-        borderRadius: 10,
-        marginBottom: 12,
+        backgroundColor: '#1E1E1E',
+        paddingVertical: 16,
+        paddingHorizontal: 32,
+        borderRadius: 12,
+        marginBottom: 16,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: "#BB86FC",
+        shadowColor: "#BB86FC",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
     },
     buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '600',
+        color: '#E1E1E1',
+        fontSize: 18,
+        fontWeight: '700',
+        textTransform: "uppercase",
+        letterSpacing: 1,
     },
 });
