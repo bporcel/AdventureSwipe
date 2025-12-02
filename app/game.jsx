@@ -1,4 +1,5 @@
 import { useAudioPlayer } from 'expo-audio';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -50,9 +51,9 @@ export default function GameScreen() {
     const depth = useRef(0);
 
     useEffect(() => {
-        // player.seekTo(0);
-        // player.loop = true;
-        // player.play();
+        player.seekTo(0);
+        player.loop = true;
+        player.play();
         (async () => {
             if (params.newGame) {
                 onNewGame();
@@ -93,7 +94,7 @@ export default function GameScreen() {
     async function handleChoice(choice) {
         if (node.isEnding) {
             // if (true) {
-            // player.replace('https://musicfile.api.box/NzI4MGZkODMtOWI2My00ZmM0LThiOTctNzFlMjMwNzE1YTg2.mp3')
+            player.replace('https://musicfile.api.box/NzI4MGZkODMtOWI2My00ZmM0LThiOTctNzFlMjMwNzE1YTg2.mp3')
             setShowEnd(true);
             return;
         }
@@ -128,6 +129,10 @@ export default function GameScreen() {
         <View style={styles.container}>
             <View style={styles.top}>
                 <ImageBackground source={{ uri: node.image }} style={styles.image} resizeMode="cover" />
+                <LinearGradient
+                    colors={['transparent', '#121212']}
+                    style={styles.gradient}
+                />
             </View>
 
             <View style={styles.bottom}>
@@ -177,6 +182,13 @@ const styles = StyleSheet.create({
     },
     image: {
         flex: 1
+    },
+    gradient: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        height: 100,
     },
     appTitle: {
         fontSize: 22,

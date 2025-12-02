@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import TypeWriter from 'react-native-typewriter';
 
 
-export default function StoryEndScreen({ history, onBackToMenu, onClose }) {
+export default function StoryEndScreen({ history, onBackToMenu }) {
     const [fullHistory, setFullHistory] = useState(null);
-    const [displayButtons, setDisplayButtons] = useState(true);
+    const [displayButtons, setDisplayButtons] = useState(false);
 
     useEffect(() => {
         let text = "";
@@ -27,17 +28,17 @@ export default function StoryEndScreen({ history, onBackToMenu, onClose }) {
                 <Text style={styles.title}>Story Completed!</Text>
 
                 {fullHistory && (
-                    // <TypeWriter
-                    //     typing={1}
-                    //     maxDelay={10}
-                    //     style={styles.stat}
-                    //     onTypingEnd={handleTypingEnd}
-                    // >
-                    //     {fullHistory}
-                    // </TypeWriter>
-                    <Text style={styles.stat}>
+                    <TypeWriter
+                        typing={1}
+                        maxDelay={10}
+                        style={styles.stat}
+                        onTypingEnd={handleTypingEnd}
+                    >
                         {fullHistory}
-                    </Text>
+                    </TypeWriter>
+                    // <Text style={styles.stat}>
+                    //     {fullHistory}
+                    // </Text>
                 )}
 
                 {displayButtons && (
