@@ -9,7 +9,7 @@ function stripImages(node) {
 
 export async function generateNextNode({ currentNode, choice, history, depth }) {
   const payload = {
-    currentNode: stripImages(currentNode),
+    currentNode,
     choice,
     history: history.map(n => stripImages(n)),
     depth

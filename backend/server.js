@@ -12,7 +12,8 @@ dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+
+app.use(express.json({ limit: '50mb' }));
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -25,6 +26,7 @@ const ai = new GoogleGenAI({
 const storyCache = new NodeCache({ stdTTL: 3600 }); // cached story nodes by prompt hash
 const imageCache = new NodeCache({ stdTTL: 24 * 3600 }); // cached images by prompt hash
 const preloadCache = new NodeCache({ stdTTL: 3600 }); // preloaded nodes keyed by `${nodeId}:${choice}`
+const pendingPreloads = new Map(); // Key: `${nodeId}:${choice}`, Value: { promise, controller }
 const limiter = new Bottleneck({ minTime: 1500 });  // at least 1.5s between image requests
 
 // - depth 0–4: Exploration → introduce world, clarify objective, light obstacles.
@@ -55,7 +57,7 @@ const SYSTEM_PROMPT = `
     - The story must gradually move toward a resolution: either achieving the main objective (success) or failing it (failure).
     - Introduce escalating tension, obstacles, and clues so the player can reach an ending within a reasonable number of choices.
 
-    3. Story Arc & Depth
+    3. **Story Arc & Depth** 
     - You will receive a numeric "depth" value representing how far the player is into the story.
     - Use this to shape the narrative arc:
     - depth 0–2: Exploration → introduce world, clarify objective, light obstacles.
@@ -68,6 +70,12 @@ const SYSTEM_PROMPT = `
     - Use atmospheric, sensory descriptions.
     - Keep text concise (max 80 words).
     - Avoid repeating phrases or recapping previous scenes.
+
+    5. **Visual Consistency & Transitions**
+    - The "image" field description is CRITICAL.
+    - If the player stays in the same area, REPEAT the key visual elements (e.g., "The same bioluminescent forest, green fog, mossy trees").
+    - Do not assume the artist knows the previous context. You must explicitly restate the environment style in every image prompt.
+    - Only change the environment keywords if the story explicitly moves to a new location (e.g., entering a cave).
 
     ────────────────────────
     ENDING RULES (STRICT)
@@ -109,7 +117,7 @@ const SYSTEM_PROMPT = `
     Always respond **ONLY** with valid JSON:
 
     {
-        "image": "short description for background art",
+        "image": "detailed visual description for an oil painting. Include lighting, colors, and key elements. (max 40 words)",
         "text": "next part of the story (max 80 words)",
         "choices": {
             "left": "action text for swiping left",
@@ -141,13 +149,30 @@ app.post("/next", async (req, res) => {
             res.json(result);
         } else {
             const preloadKey = `${currentNode.id}:${choice}`;
+
+            // Cancel unchosen paths
+            const otherChoice = choice === 'left' ? 'right' : 'left';
+            const otherKey = `${currentNode.id}:${otherChoice}`;
+            if (pendingPreloads.has(otherKey)) {
+                console.log(`🗑️ Cancelling unchosen preload: ${otherKey}`);
+                pendingPreloads.get(otherKey).controller.abort();
+            }
+
             try {
-                let result = preloadCache.get(preloadKey);
-                console.log(preloadKey)
-                if (result) {
-                    console.log(`⚡ Returning preloaded node for ${preloadKey}`);
+                let result;
+
+                // Check if we have a pending preload for THIS choice
+                if (pendingPreloads.has(preloadKey)) {
+                    console.log(`⚡ Joining pending preload for ${preloadKey}`);
+                    result = await pendingPreloads.get(preloadKey).promise;
                 } else {
-                    result = await generateNodeForChoice({ currentNode, choice, history, depth });
+                    result = preloadCache.get(preloadKey);
+                    console.log(preloadKey)
+                    if (result) {
+                        console.log(`⚡ Returning preloaded node for ${preloadKey}`);
+                    } else {
+                        result = await generateNodeForChoice({ currentNode, choice, history, depth });
+                    }
                 }
 
                 res.json(result);
@@ -155,7 +180,8 @@ app.post("/next", async (req, res) => {
                 preloadChoice(result, "left", [...(history || []), result], depth + 1);
                 preloadChoice(result, "right", [...(history || []), result], depth + 1);
             } catch (e) {
-                console.error("Preload failed with error => ", e)
+                console.error("Generation failed with error => ", e)
+                res.status(500).json({ error: "Server error generating story" });
             }
         }
     } catch (err) {
@@ -188,7 +214,7 @@ app.get("/new-game", async (req, res) => {
     }
 });
 
-async function generateNodeForChoice({ currentNode = null, choice = 'start', history = [], forcedPrompt = null, depth = 0 }) {
+async function generateNodeForChoice({ currentNode = null, choice = 'start', history = [], forcedPrompt = null, depth = 0, signal }) {
     const recentHistory = history.slice(-5).map((n, i) => `(${i + 1}) ${n.text}`).join("\n");
     const prompt = createPrompt(recentHistory, currentNode, choice, forcedPrompt, depth);
 
@@ -199,7 +225,7 @@ async function generateNodeForChoice({ currentNode = null, choice = 'start', his
         return JSON.parse(JSON.stringify(cachedStory));
     }
 
-    const story = await getStory(prompt);
+    const story = await getStory(prompt, signal);
     const message = story.choices[0].message.content;
     const match = message.match(/\{[\s\S]*\}/);
     const json = match ? JSON.parse(match[0]) : { text: message, image: "", choices: { left: "Left", right: "Right" }, isEnding: false };
@@ -208,7 +234,7 @@ async function generateNodeForChoice({ currentNode = null, choice = 'start', his
     let imageUrl = imageCache.get(imgKey);
 
     if (!imageUrl) {
-        const imgResp = await getImage(json.image);
+        const imgResp = await getImage(json.image, currentNode?.image);
 
         if (imgResp) {
             const base64Image = imgResp.candidates?.[0]?.content?.parts?.find(part => part.inlineData);
@@ -238,18 +264,33 @@ async function preloadChoice(currentNode, choice, history = [], depth) {
 
         const preloadKey = `${currentNode.id}:${choice}`;
 
-        if (preloadCache.get(preloadKey)) {
-            console.log(`🗃️ Preload already exists for ${preloadKey}`);
+        if (preloadCache.get(preloadKey) || pendingPreloads.has(preloadKey)) {
+            console.log(`🗃️ Preload already exists or pending for ${preloadKey}`);
             return;
         }
 
         console.log(`⏱️ Preloading branch [${choice}] for node ${preloadKey}`);
-        const node = await generateNodeForChoice({ currentNode, choice, history, depth });
 
-        preloadCache.set(preloadKey, node);
-        console.log(`✅ Node ${preloadKey} stored in cache`);
+        const controller = new AbortController();
+        const promise = generateNodeForChoice({ currentNode, choice, history, depth, signal: controller.signal });
+
+        pendingPreloads.set(preloadKey, { promise, controller });
+
+        try {
+            const node = await promise;
+            preloadCache.set(preloadKey, node);
+            console.log(`✅ Node ${preloadKey} stored in cache`);
+        } catch (err) {
+            if (err.name === 'AbortError' || err.name === 'APIUserAbortError') {
+                console.log(`🛑 Preload aborted for ${preloadKey}`);
+            } else {
+                console.error("Preload error:", err);
+            }
+        } finally {
+            pendingPreloads.delete(preloadKey);
+        }
     } catch (err) {
-        console.error("Preload error:", err);
+        console.error("Preload setup error:", err);
     }
 }
 
@@ -266,7 +307,7 @@ const createPrompt = (recentHistory, currentNode, choice, forcedPrompt, depth) =
     return prompt
 }
 
-const getStory = async (prompt) => {
+const getStory = async (prompt, signal) => {
     console.log("Generating new user story:");
     return await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -275,42 +316,60 @@ const getStory = async (prompt) => {
             { role: "user", content: prompt },
         ],
         temperature: 0.8,
-    });
+    }, { signal });
 }
 
-const getImage = async (image) => {
+const getImage = async (prompt, referenceImage) => {
     console.log("🖼️ Generating new Gemini image:");
     if (process.env.NODE_ENV === 'test_gpt') return;
 
     return await limiter.schedule(async () => {
+        const parts = [];
+
+        parts.push({
+            text: `
+            You are a lead concept artist for a dark fantasy RPG.
+            
+            TASK: Generate the NEXT frame in a continuous story.
+            
+            INPUT CONTEXT:
+            - The user has provided a reference image (the previous scene).
+            - STRICTLY maintain the same: Art style (Digital Oil Painting), Color Palette, Lighting conditions, and Environmental details.
+            - CHANGE only: The action or perspective described in the prompt below.
+            
+            PROMPT: ${prompt}
+            
+            STYLE GUIDE:
+            - Digital oil painting, visible brushstrokes.
+            - Cinematic rim lighting.
+            - Gritty, weathered details.
+            - No photorealism, no 3D render look.
+            `
+        });
+
+        if (referenceImage) {
+            const cleanBase64 = referenceImage.replace(/^data:image\/\w+;base64,/, "");
+
+            parts.push({
+                inlineData: {
+                    mimeType: "image/png",
+                    data: cleanBase64
+                }
+            });
+        }
+
         return await ai.models.generateContent({
             model: "gemini-2.5-flash-image",
-            systemInstruction: {
-                parts: [{ 
-                    text: `
-                    You are a lead concept artist for a high-budget tabletop RPG rulebook (Dungeons & Dragons 5e style). 
-                    Transform every user prompt into an illustration that strictly adheres to these style guides:
-        
-                    1.  **Medium:** Digital oil painting technique. High polish, smooth blending, but with visible "painterly" brush texture. STRICTLY AVOID: Photorealism, 3D renders, anime/manga style, or flat vector art.
-                    2.  **Lighting:** Cinematic and dramatic. Use "Rim Lighting" (backlighting) to separate the subject from the background. High contrast between light and shadow (Chiaroscuro).
-                    3.  **Color:** Rich, deep, and earthy color palettes. Avoid neon or synthetic colors unless depicting raw magic. 
-                    4.  **Composition:** Dynamic and heroic. 
-                        * *Characters:* Action-oriented poses, slightly low camera angle (looking up) to create a sense of power.
-                        * *Landscapes:* Heavy use of atmospheric perspective (fog/mist in distance) to show scale.
-                    5.  **Detailing:** Focus on "storytelling wear-and-tear"—scratches on armor, dirt on cloaks, weathering on stone. Nothing should look brand new.
-                    ` 
-                }]
-            },
             contents: [
                 {
                     role: "user",
-                    parts: [{ text: image }]
+                    parts: parts
                 }
             ],
             config: {
                 responseModalities: ["IMAGE"],
                 generationConfig: {
-                    temperature: 0.8,
+                    temperature: 0.7,
                 }
             }
         });
