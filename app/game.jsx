@@ -1,4 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useAudioPlayer } from 'expo-audio';
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Dimensions,
@@ -8,13 +10,13 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { useAudioPlayer } from 'expo-audio';
 import { ScrollView } from 'react-native-gesture-handler';
-import { generateNewGameNode, generateNextNode } from "../../common/api";
-import { clearSave, loadSave, saveGame } from "../../common/storage";
-import SwipeableCard from '../components/SwipeableCard';
-import HistoryScreen from "./HistoryScreen";
-import EndScreen from "./EndScreen";
+import { generateNewGameNode, generateNextNode } from "../common/api";
+import { clearAllImages } from "../common/imageStorage";
+import { clearSave, loadSave, saveGame } from "../common/storage";
+import SwipeableCard from './components/SwipeableCard';
+import EndScreen from "./screens/EndScreen";
+import HistoryScreen from "./screens/HistoryScreen";
 
 
 const { height: SCREEN_H } = Dimensions.get("window");
@@ -34,7 +36,9 @@ const INITIAL_NODE = {
     isEnding: false
 };
 
-export default function GameScreen({ onExit }) {
+export default function GameScreen() {
+    const router = useRouter();
+    const params = useLocalSearchParams();
     const [node, setNode] = useState(INITIAL_NODE);
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -49,14 +53,16 @@ export default function GameScreen({ onExit }) {
         // player.seekTo(0);
         // player.loop = true;
         // player.play();
-
         (async () => {
+            if (params.newGame) {
+                onNewGame();
+                return;
+            }
+
             const saved = await loadSave();
             if (saved) {
                 setNode(saved.node);
                 setHistory(saved.history);
-            } else {
-                onNewGame();
             }
         })();
     }, []);
@@ -72,6 +78,7 @@ export default function GameScreen({ onExit }) {
     const onNewGame = async () => {
         setLoading(true);
         await clearSave();
+        await clearAllImages();
         setHistory([]);
         const newNode = await generateNewGameNode();
         setNode(newNode);
@@ -79,9 +86,13 @@ export default function GameScreen({ onExit }) {
         setLoading(false);
     };
 
+    const onExit = () => {
+        router.replace("/");
+    };
+
     async function handleChoice(choice) {
         if (node.isEnding) {
-        // if (true) {
+            // if (true) {
             // player.replace('https://musicfile.api.box/NzI4MGZkODMtOWI2My00ZmM0LThiOTctNzFlMjMwNzE1YTg2.mp3')
             setShowEnd(true);
             return;
@@ -101,7 +112,7 @@ export default function GameScreen({ onExit }) {
         }
     }
 
-    function onSwipeablePress(){
+    function onSwipeablePress() {
         setShowHints(true);
     }
 

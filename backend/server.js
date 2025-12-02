@@ -195,7 +195,7 @@ async function generateNodeForChoice({ currentNode = null, choice = 'start', his
     const storyKey = crypto.createHash("sha256").update(prompt).digest("hex");
     const cachedStory = storyCache.get(storyKey);
 
-    if (cachedStory) {
+    if (cachedStory && choice !== 'start') {
         return JSON.parse(JSON.stringify(cachedStory));
     }
 
@@ -208,16 +208,6 @@ async function generateNodeForChoice({ currentNode = null, choice = 'start', his
     let imageUrl = imageCache.get(imgKey);
 
     if (!imageUrl) {
-        // FOR MODEL imagen-4.0-generate-001
-        // const imgResp = await getImage(json.image);
-        // if (imgResp) {
-        //     const base64Image = imgResp.generatedImages[0].image.imageBytes;
-        //     imageUrl = `data:image/jpeg;base64,${base64Image}`;
-        //     imageCache.set(imgKey, imageUrl);
-        // }
-
-
-        // FOR MODEL gemini-2.5-flash-image
         const imgResp = await getImage(json.image);
 
         if (imgResp) {
@@ -291,18 +281,6 @@ const getStory = async (prompt) => {
 const getImage = async (image) => {
     console.log("🖼️ Generating new Gemini image:");
     if (process.env.NODE_ENV === 'test_gpt') return;
-
-    // return await limiter.schedule(() =>
-    //     ai.models.generateImages({
-    //         model: "imagen-4.0-generate-001",
-    //         prompt: image,
-    //         config: {
-    //             numberOfImages: 1,
-    //             outputMimeType: "image/jpeg",
-    //             aspectRatio: "1:1",
-    //         },
-    //     })
-    // );
 
     return await limiter.schedule(async () => {
         return await ai.models.generateContent({

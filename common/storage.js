@@ -14,9 +14,13 @@ export async function loadSave() {
 
 export async function saveGame(data) {
   try {
-    if(data.history.includes(data.node)) return;
+    // Prevent saving if the current node is already in history (to avoid duplicates on reload)
+    if (data.history.some(n => n.id === data.node.id)) return;
 
-    await AsyncStorage.setItem(SAVE_STORAGE_KEY, JSON.stringify(data));
+    const json = JSON.stringify(data);
+    console.log(`[Storage] Saving game state. Size: ${json.length} bytes`);
+
+    await AsyncStorage.setItem(SAVE_STORAGE_KEY, json);
   } catch (e) {
     console.warn("saveGame error", e);
   }

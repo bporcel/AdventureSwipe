@@ -1,5 +1,6 @@
 const API_URL = 'https://adventureswipe.onrender.com'
 const API_HOST = process.env.EXPO_PUBLIC_API_HOST || API_URL
+import { saveImage } from './imageStorage';
 
 function stripImages(node) {
   const { image, ...rest } = node;
@@ -17,21 +18,33 @@ export async function generateNextNode({ currentNode, choice, history, depth }) 
   const res = await fetch(`${API_HOST}/next`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    cache: "no-store",
     body: JSON.stringify(payload),
   });
 
   if (!res.ok) throw new Error("Network error");
 
-  return await res.json();
+  const data = await res.json();
+  if (data.image) {
+    data.image = await saveImage(data.image);
+  }
+  
+  return data;
 }
 
 export async function generateNewGameNode() {
   const res = await fetch(`${API_HOST}/new-game`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
+    cache: "no-store",
   });
 
   if (!res.ok) throw new Error("Network error");
 
-  return await res.json();
+  const data = await res.json();
+  if (data.image) {
+    data.image = await saveImage(data.image);
+  }
+
+  return data;
 }
