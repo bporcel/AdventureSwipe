@@ -16,6 +16,8 @@ export default function useSwipe(onSwipe) {
     const translateY = useSharedValue(0)
 
     const panGesture = Gesture.Pan()
+        .activeOffsetX([-5, 5])
+        .failOffsetY([-5, 5])
         .onUpdate((event) => {
             if (onLeft.value) {
                 translateX.value = event.translationX;

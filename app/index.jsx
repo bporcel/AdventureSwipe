@@ -7,19 +7,27 @@ import { clearSave } from "../common/storage";
 export default function App() {
   const [screen, setScreen] = useState("start");
 
+  function renderScreen() {
+    if (screen === 'game') {
+      return <GameScreen onExit={() => setScreen("start")} />;
+    }
+
+    if (screen === 'start') {
+      return <StartScreen
+        onStart={async () => {
+          await clearSave();
+          setScreen("game");
+        }}
+        onContinue={() => setScreen("game")}
+      />;
+    }
+
+    
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      {screen === "game" ? (
-        <GameScreen onExit={() => setScreen("start")} />
-      ) : (
-        <StartScreen
-          onStart={async () => {
-            await clearSave();
-            setScreen("game");
-          }}
-          onContinue={() => setScreen("game")}
-        />
-      )}
+      {renderScreen()}
     </GestureHandlerRootView>
   );
 }

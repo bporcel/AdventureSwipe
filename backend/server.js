@@ -27,6 +27,10 @@ const imageCache = new NodeCache({ stdTTL: 24 * 3600 }); // cached images by pro
 const preloadCache = new NodeCache({ stdTTL: 3600 }); // preloaded nodes keyed by `${nodeId}:${choice}`
 const limiter = new Bottleneck({ minTime: 1500 });  // at least 1.5s between image requests
 
+// - depth 0–4: Exploration → introduce world, clarify objective, light obstacles.
+// - depth 5–9: Rising Tension → strong challenges, discoveries, growing stakes.
+// - depth 10–13: Climax → confront main threat or final barrier.
+// - depth ≥ 14: Ending → always produce a conclusive ending node.
 
 const SYSTEM_PROMPT = `
     You are an AI storyteller generating scenes for a swipe-based "choose your own adventure" mobile game.
@@ -54,10 +58,9 @@ const SYSTEM_PROMPT = `
     3. Story Arc & Depth
     - You will receive a numeric "depth" value representing how far the player is into the story.
     - Use this to shape the narrative arc:
-    - depth 0–4: Exploration → introduce world, clarify objective, light obstacles.
-    - depth 5–9: Rising Tension → strong challenges, discoveries, growing stakes.
-    - depth 10–13: Climax → confront main threat or final barrier.
-    - depth ≥ 14: Ending → always produce a conclusive ending node.
+    - depth 0–2: Exploration → introduce world, clarify objective, light obstacles.
+    - depth 2–3: Rising Tension → strong challenges, discoveries, growing stakes.
+    - depth ≥ 4: Ending → always produce a conclusive ending node.
     - When in the Ending stage, set "isEnding": true and resolve the main objective with success or failure.
     - Never stall, loop, or reset the arc.
 
@@ -112,7 +115,7 @@ const SYSTEM_PROMPT = `
             "left": "action text for swiping left",
             "right": "action text for swiping right"
         },
-        "isEnding": boolean, no commas "indicates when the ending is reached."
+        "isEnding": boolean (true || false) "indicates when the ending is reached."
     }
 
     - No extra text outside the JSON.
@@ -304,6 +307,22 @@ const getImage = async (image) => {
     return await limiter.schedule(async () => {
         return await ai.models.generateContent({
             model: "gemini-2.5-flash-image",
+            systemInstruction: {
+                parts: [{ 
+                    text: `
+                    You are a lead concept artist for a high-budget tabletop RPG rulebook (Dungeons & Dragons 5e style). 
+                    Transform every user prompt into an illustration that strictly adheres to these style guides:
+        
+                    1.  **Medium:** Digital oil painting technique. High polish, smooth blending, but with visible "painterly" brush texture. STRICTLY AVOID: Photorealism, 3D renders, anime/manga style, or flat vector art.
+                    2.  **Lighting:** Cinematic and dramatic. Use "Rim Lighting" (backlighting) to separate the subject from the background. High contrast between light and shadow (Chiaroscuro).
+                    3.  **Color:** Rich, deep, and earthy color palettes. Avoid neon or synthetic colors unless depicting raw magic. 
+                    4.  **Composition:** Dynamic and heroic. 
+                        * *Characters:* Action-oriented poses, slightly low camera angle (looking up) to create a sense of power.
+                        * *Landscapes:* Heavy use of atmospheric perspective (fog/mist in distance) to show scale.
+                    5.  **Detailing:** Focus on "storytelling wear-and-tear"—scratches on armor, dirt on cloaks, weathering on stone. Nothing should look brand new.
+                    ` 
+                }]
+            },
             contents: [
                 {
                     role: "user",
@@ -313,7 +332,7 @@ const getImage = async (image) => {
             config: {
                 responseModalities: ["IMAGE"],
                 generationConfig: {
-                    temperature: 1.0,
+                    temperature: 0.8,
                 }
             }
         });

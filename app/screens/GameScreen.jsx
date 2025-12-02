@@ -3,18 +3,18 @@ import {
     ActivityIndicator,
     Dimensions,
     ImageBackground,
-    ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 import { useAudioPlayer } from 'expo-audio';
+import { ScrollView } from 'react-native-gesture-handler';
 import { generateNewGameNode, generateNextNode } from "../../common/api";
 import { clearSave, loadSave, saveGame } from "../../common/storage";
 import SwipeableCard from '../components/SwipeableCard';
-import Card from '../components/Card';
 import HistoryScreen from "./HistoryScreen";
+import EndScreen from "./EndScreen";
 
 
 const { height: SCREEN_H } = Dimensions.get("window");
@@ -38,15 +38,17 @@ export default function GameScreen({ onExit }) {
     const [node, setNode] = useState(INITIAL_NODE);
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [showHints, setShowHints] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
+    const [showEnd, setShowEnd] = useState(false);
     const player = useAudioPlayer('https://musicfile.api.box/YzA3ZjcwYjgtNWRlNy00MTg4LWI4NjItYjY2ZTZiNGFiYjA1.mp3');
 
     const depth = useRef(0);
 
     useEffect(() => {
-        player.seekTo(0);
-        player.loop = true;
-        player.play();
+        // player.seekTo(0);
+        // player.loop = true;
+        // player.play();
 
         (async () => {
             const saved = await loadSave();
@@ -78,7 +80,15 @@ export default function GameScreen({ onExit }) {
     };
 
     async function handleChoice(choice) {
+        if (node.isEnding) {
+        // if (true) {
+            // player.replace('https://musicfile.api.box/NzI4MGZkODMtOWI2My00ZmM0LThiOTctNzFlMjMwNzE1YTg2.mp3')
+            setShowEnd(true);
+            return;
+        }
+
         setLoading(true);
+        setShowHints(false);
         depth.current++;
 
         try {
@@ -91,15 +101,22 @@ export default function GameScreen({ onExit }) {
         }
     }
 
+    function onSwipeablePress(){
+        setShowHints(true);
+    }
+
     if (showHistory) {
         return <HistoryScreen history={history} onClose={() => setShowHistory(false)} />;
+    }
+
+    if (showEnd) {
+        return <EndScreen onBackToMenu={onExit} onClose={onExit} history={history} />
     }
 
     return (
         <View style={styles.container}>
             <View style={styles.top}>
-                <ImageBackground source={{ uri: node.image }} style={styles.image} resizeMode="cover">
-                </ImageBackground>
+                <ImageBackground source={{ uri: node.image }} style={styles.image} resizeMode="cover" />
             </View>
 
             <View style={styles.bottom}>
@@ -107,18 +124,16 @@ export default function GameScreen({ onExit }) {
                     <ActivityIndicator style={{ marginTop: 12 }} />
                 ) : (
                     <ScrollView>
-                        {node.isEnding ? (
-                            <Card text={node.text} />
-                        ) : (
-                            <SwipeableCard text={node.text} onSwipe={handleChoice} />
-                        )}
-                        {!node.isEnding &&
+                        <SwipeableCard text={node.text} onSwipe={handleChoice} onPress={onSwipeablePress} />
+                        {!node.isEnding && showHints &&
                             <View style={styles.hintRow}>
-                                <View style={[styles.hintBox, { marginRight: 5 }]}>
-                                    <Text style={styles.hint}>{'\u276E'} {node.choices.left}</Text>
+                                <View style={styles.hintBox}>
+                                    <Text style={styles.hint}>{'\u276E'}</Text>
+                                    <Text style={styles.hint}>{node.choices.left}</Text>
                                 </View>
-                                <View style={[styles.hintBox, { marginLeft: 5 }]}>
-                                    <Text style={styles.hint}>{node.choices.right} {'\u276F'}</Text>
+                                <View style={styles.hintBox}>
+                                    <Text style={styles.hint}>{node.choices.right}</Text>
+                                    <Text style={styles.hint}>{'\u276F'}</Text>
                                 </View>
                             </View>
                         }
@@ -152,10 +167,6 @@ const styles = StyleSheet.create({
     image: {
         flex: 1
     },
-    topOverlay: {
-        marginTop: 48,
-        paddingHorizontal: 16
-    },
     appTitle: {
         fontSize: 22,
         fontWeight: "700",
@@ -165,47 +176,31 @@ const styles = StyleSheet.create({
         textShadowRadius: 6,
     },
     bottom: {
-        flex: 2,
+        flex: 1,
         justifyContent: 'space-between',
         padding: 16,
+        padding: 0
     },
     hintRow: {
         flexDirection: 'row',
+        margin: 16,
         marginTop: 10,
     },
     hintBox: {
         flex: 1,
-        padding: 20,
-        borderRadius: 14,
-        borderWidth: 2,
-        borderColor: 'rgba(68, 67, 71, 0.51)',
-        backgroundColor: 'rgba(68, 67, 71, 0.08)',
-        borderRadius: 8,
+        flexDirection: 'row',
+        justifyContent: "space-between",
+        alignItems: 'flex-start',
         paddingVertical: 8,
-        alignItems: 'center',
-        justifyContent: 'center',
+        marginHorizontal: 5,
     },
     hint: {
         fontSize: 13,
         color: '#333',
         fontWeight: '500',
     },
-    controls: {
-        marginTop: 16,
-        flexDirection: "row",
-        justifyContent: "space-between"
-    },
-    btn: {
-        paddingVertical: 10,
-        paddingHorizontal: 18,
-        borderRadius: 10,
-        minWidth: 110,
-        alignItems: "center",
-    },
-    btnText: {
-        fontWeight: "600"
-    },
     footerRow: {
+        margin: 16,
         marginTop: 12,
         flexDirection: "row",
         justifyContent: "space-between",
