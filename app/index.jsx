@@ -6,7 +6,8 @@ import { loadSave } from "../common/storage";
 export default function StartScreen() {
   const router = useRouter();
   const [hasSave, setHasSave] = useState(false);
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const startScaleAnim = useRef(new Animated.Value(1)).current;
+  const loadScaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     (async () => {
@@ -23,8 +24,8 @@ export default function StartScreen() {
     router.push("/game");
   };
 
-  const pressIn = () => {
-    Animated.spring(scaleAnim, {
+  const pressIn = (anim) => {
+    Animated.spring(anim, {
       toValue: 0.97,
       useNativeDriver: true,
       speed: 20,
@@ -32,8 +33,8 @@ export default function StartScreen() {
     }).start();
   };
 
-  const pressOut = () => {
-    Animated.spring(scaleAnim, {
+  const pressOut = (anim) => {
+    Animated.spring(anim, {
       toValue: 1,
       useNativeDriver: true,
       speed: 20,
@@ -54,11 +55,11 @@ export default function StartScreen() {
         <Text style={styles.title}>AdventureSwipe</Text>
         <Text style={styles.tagline}>Shape your fate with a single swipe</Text>
 
-        <Animated.View style={{ transform: [{ scale: scaleAnim }], marginBottom: 20 }}>
+        <Animated.View style={{ transform: [{ scale: startScaleAnim }], marginBottom: 20 }}>
           <Pressable
             onPress={onStart}
-            onPressIn={pressIn}
-            onPressOut={pressOut}
+            onPressIn={() => pressIn(startScaleAnim)}
+            onPressOut={() => pressOut(startScaleAnim)}
             style={styles.startButton}
           >
             <Text style={styles.startButtonText}>Start Adventure</Text>
@@ -66,11 +67,11 @@ export default function StartScreen() {
         </Animated.View>
 
         {hasSave && (
-          <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+          <Animated.View style={{ transform: [{ scale: loadScaleAnim }] }}>
             <Pressable
               onPress={onContinue}
-              onPressIn={pressIn}
-              onPressOut={pressOut}
+              onPressIn={() => pressIn(loadScaleAnim)}
+              onPressOut={() => pressOut(loadScaleAnim)}
               style={styles.startButton}
             >
               <Text style={styles.startButtonText}>Load Game</Text>
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor: "rgba(0,0,0,0.7)", // Darker overlay
   },
   container: {
     flex: 1,
@@ -101,31 +102,44 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   title: {
-    fontSize: 42,
-    fontWeight: "700",
-    color: "#fff",
+    fontSize: 44,
+    fontWeight: "800",
+    color: "#E1E1E1",
     textAlign: "center",
-    marginBottom: 6,
+    marginBottom: 10,
+    textShadowColor: "rgba(187, 134, 252, 0.5)", // Purple glow
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+    letterSpacing: 1.5,
   },
   tagline: {
-    fontSize: 16,
-    color: "#ddd",
+    fontSize: 18,
+    color: "#BB86FC", // Secondary purple
     textAlign: "center",
-    marginBottom: 40,
+    marginBottom: 50,
+    fontStyle: "italic",
+    opacity: 0.9,
   },
   startButton: {
-    backgroundColor: "rgba(255,255,255,0.15)",
-    paddingVertical: 18,
-    borderRadius: 14,
+    backgroundColor: "#1E1E1E",
+    paddingVertical: 20,
+    paddingHorizontal: 40,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.3)",
+    borderColor: "#BB86FC",
     alignItems: "center",
-    backdropFilter: "blur(4px)",
+    shadowColor: "#BB86FC",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   startButtonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
+    color: "#E1E1E1",
+    fontSize: 20,
+    fontWeight: "700",
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
   secondary: {
     marginTop: 40,
@@ -133,7 +147,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   link: {
-    color: "#ccc",
+    color: "#888",
     fontSize: 16,
+    textDecorationLine: "underline",
   },
 });

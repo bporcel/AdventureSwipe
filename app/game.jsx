@@ -170,7 +170,7 @@ export default function GameScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fafafa"
+        backgroundColor: "#121212"
     },
     top: {
         height: TOP_IMAGE_HEIGHT
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     },
     hint: {
         fontSize: 13,
-        color: '#333',
+        color: '#888',
         fontWeight: '500',
     },
     footerRow: {
@@ -218,6 +218,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     smallLink: {
-        color: "#0a84ff"
+        color: "#BB86FC",
+        fontSize: 16,
+        fontWeight: "600"
     },
 });

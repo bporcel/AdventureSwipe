@@ -1,5 +1,4 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function HistoryScreen({ history, onClose }) {
   return (
@@ -24,12 +23,12 @@ export default function HistoryScreen({ history, onClose }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fafafa", paddingTop: 40 },
+  container: { flex: 1, backgroundColor: "#121212", paddingTop: 40 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, marginBottom: 12 },
-  title: { fontSize: 22, fontWeight: "700" },
-  close: { fontSize: 16, color: "#0a84ff" },
+  title: { fontSize: 24, fontWeight: "700", color: "#E1E1E1" },
+  close: { fontSize: 16, color: "#BB86FC" },
   scroll: { paddingHorizontal: 16, paddingBottom: 20 },
-  card: { marginBottom: 16, backgroundColor: "#fff", borderRadius: 12, padding: 12, elevation: 3, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 6 },
-  image: { width: "100%", height: 150, borderRadius: 8, marginBottom: 8 },
-  text: { fontSize: 16, lineHeight: 22, color: "#222" },
+  card: { marginBottom: 16, backgroundColor: "#1E1E1E", borderRadius: 12, padding: 12, elevation: 4, shadowColor: "#000", shadowOpacity: 0.3, shadowRadius: 6, borderWidth: 1, borderColor: "#333" },
+  image: { width: "100%", height: 150, borderRadius: 8, marginBottom: 12 },
+  text: { fontSize: 16, lineHeight: 24, color: "#ccc" },
 });

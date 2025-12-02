@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Text, StyleSheet, Pressable } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import TypeWriter from 'react-native-typewriter';
@@ -44,20 +44,25 @@ export default function SwipeableCard({ text, onSwipe, onPress }) {
 
 const styles = StyleSheet.create({
     storyText: {
-        fontSize: 18,
-        lineHeight: 26,
-        color: "#222"
+        fontSize: 20,
+        lineHeight: 30,
+        color: "#E1E1E1",
+        fontWeight: "400",
+        letterSpacing: 0.5,
     },
     card: {
-        backgroundColor: "#fff",
-        borderRadius: 14,
-        padding: 18,
-        elevation: 4,
+        backgroundColor: "#1E1E1E",
+        borderRadius: 16,
+        padding: 24,
+        elevation: 8,
         shadowColor: "#000",
-        shadowOpacity: 0.08,
-        shadowRadius: 10,
-        minHeight: 200,
+        shadowOpacity: 0.4,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 6 },
+        minHeight: 220,
         margin: 16,
         marginBottom: 16,
+        borderWidth: 1,
+        borderColor: "#333",
     },
 });
