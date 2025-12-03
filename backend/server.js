@@ -136,7 +136,7 @@ async function generateNodeForChoice({ currentNode = null, choice = 'start', his
     const story = await getStory(prompt, signal);
     const message = story.choices[0].message.content;
     const match = message.match(/\{[\s\S]*\}/);
-    const json = match ? JSON.parse(match[0]) : { text: message, image: "", choices: { left: "Left", right: "Right" }, isEnding: false, endingType: "neutral", objectiveScore: 50 };
+    const json = match ? JSON.parse(match[0]) : { text: message, image: "", choices: { left: "Left", right: "Right" }, isEnding: false, endingType: "neutral", objectiveScore: 50, inventory: [] };
 
     const imgKey = crypto.createHash("sha256").update(json.image).digest("hex");
     let imageUrl = imageCache.get(imgKey);
@@ -161,7 +161,8 @@ async function generateNodeForChoice({ currentNode = null, choice = 'start', his
         },
         isEnding: json.isEnding,
         endingType: json.endingType || "neutral",
-        objectiveScore: json.objectiveScore || 50
+        objectiveScore: json.objectiveScore || 50,
+        inventory: json.inventory || []
     }
 
     storyCache.set(storyKey, result);
@@ -212,6 +213,7 @@ const createPrompt = (recentHistory, currentNode, choice, forcedPrompt, depth) =
     Player swiped: ${choice} - ${currentNode.choices[choice]}.
     Current depth: ${depth}
     Current Objective Score: ${currentNode.objectiveScore || 50}
+    Current Inventory: ${JSON.stringify(currentNode.inventory || [])}
     Describe what happens next.
 `;
 
@@ -287,7 +289,8 @@ function buildTestResult() {
         depth: 0,
         isEnding: false,
         endingType: "neutral",
-        objectiveScore: 50
+        objectiveScore: 50,
+        inventory: ["Rusty Sword", "Health Potion"]
     }
 }
 

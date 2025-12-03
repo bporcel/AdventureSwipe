@@ -18,6 +18,7 @@ import { useAudio } from '../common/AudioContext';
 import { clearAllImages } from "../common/imageStorage";
 import { clearSave, loadSave, saveGame } from "../common/storage";
 import AudioControl from './components/AudioControl';
+import InventoryDisplay from './components/InventoryDisplay';
 import LoadingRune from './components/LoadingRune';
 import ObjectiveIndicator from './components/ObjectiveIndicator';
 import SwipeableCard from './components/SwipeableCard';
@@ -40,7 +41,10 @@ const INITIAL_NODE = {
     },
     depth: 0,
     isEnding: false,
-    objectiveScore: 50
+    depth: 0,
+    isEnding: false,
+    objectiveScore: 50,
+    inventory: []
 };
 
 export default function GameScreen() {
@@ -161,6 +165,7 @@ export default function GameScreen() {
 
             <View style={styles.bottom}>
                 <ObjectiveIndicator score={node.objectiveScore} />
+                <InventoryDisplay inventory={node.inventory} />
                 {loading ? (
                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                         <LoadingRune />

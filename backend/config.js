@@ -56,6 +56,15 @@ const SYSTEM_STORY_PROMPT = `
     - Update this score based on the player's choices.
 
     ────────────────────────
+    INVENTORY TRACKING
+    ────────────────────────
+    - You must track the player's "inventory" (array of strings).
+    - Add items when logical (e.g., "You pick up the rusty key" -> add "Rusty Key").
+    - Remove items when used or lost (e.g., "You throw the torch" -> remove "Torch").
+    - Keep it concise (max 3-4 items).
+    - If the situation implies specific gear (e.g., "A beast attacks"), ensure the player has appropriate tools if they acquired them, or give them something situational if it makes sense for the story flow.
+
+    ────────────────────────
     RESPONSE FORMAT
     ────────────────────────
     Return ONLY valid JSON:
@@ -68,7 +77,8 @@ const SYSTEM_STORY_PROMPT = `
         },
         "isEnding": boolean,
         "endingType": "success" | "death" | "neutral",
-        "objectiveScore": number
+        "objectiveScore": number,
+        "inventory": ["item1", "item2"]
     }
 `;
 
