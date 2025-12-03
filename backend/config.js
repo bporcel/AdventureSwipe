@@ -91,6 +91,7 @@ const SYSTEM_IMAGE_PROMPT = `
             - The user has provided a reference image (the previous scene).
             - STRICTLY maintain the same: Art style (Digital Oil Painting), Color Palette, Lighting conditions, and Environmental details.
             - CHANGE only: The action or perspective described in the prompt below.
+            - INVENTORY: {inventory} (If relevant to the action, show these items being used or visible).
             
             PROMPT: {prompt}
             

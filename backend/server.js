@@ -142,7 +142,7 @@ async function generateNodeForChoice({ currentNode = null, choice = 'start', his
     let imageUrl = imageCache.get(imgKey);
 
     if (!imageUrl) {
-        const imgResp = await getImage(json.image, currentNode?.image);
+        const imgResp = await getImage(json.image, currentNode?.image, json.inventory || []);
 
         if (imgResp) {
             const base64Image = imgResp.candidates?.[0]?.content?.parts?.find(part => part.inlineData);
@@ -232,15 +232,16 @@ const getStory = async (prompt, signal) => {
     }, { signal });
 }
 
-const getImage = async (prompt, referenceImage) => {
+const getImage = async (prompt, referenceImage, inventory = []) => {
     console.log("🖼️ Generating new Gemini image:");
     if (process.env.NODE_ENV === 'test_gpt') return;
 
     return await limiter.schedule(async () => {
         const parts = [];
 
+        const inventoryText = inventory.length > 0 ? inventory.join(", ") : "None";
         parts.push({
-            text: SYSTEM_IMAGE_PROMPT.replace("{prompt}", prompt),
+            text: SYSTEM_IMAGE_PROMPT.replace("{prompt}", prompt).replace("{inventory}", inventoryText),
         });
 
         if (referenceImage) {
