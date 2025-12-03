@@ -29,12 +29,12 @@ const TOP_IMAGE_HEIGHT = SCREEN_H * 0.55;
 const INITIAL_NODE = {
     id: "start",
     image:
-        "https://placehold.co/400x400/png",
+        "",
     text:
-        "You wake up in a mossy clearing beneath a ring of ancient oaks. To your right a narrow path disappears into fog; to your left, a ruined stone wall with strange runes.",
+        "",
     choices: {
-        right: "See were the path takes you",
-        left: "Inspect the stone wall"
+        right: "",
+        left: ""
     },
     depth: 0,
     isEnding: false
@@ -148,22 +148,32 @@ export default function GameScreen() {
 
             <View style={styles.bottom}>
                 {loading ? (
-                    <ActivityIndicator style={{ marginTop: 12 }} />
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <ActivityIndicator size="large" color="#BB86FC" />
+                    </View>
                 ) : (
                     <ScrollView>
                         <SwipeableCard text={node.text} onSwipe={handleChoice} onPress={onSwipeablePress} />
                         {!node.isEnding && showHints &&
                             <View style={styles.hintContainer}>
-                                <View style={[styles.hintCard, styles.hintCardLeft]}>
+                                <TouchableOpacity style={[styles.hintCard, styles.hintCardLeft]} onPress={() => handleChoice('left')}>
                                     <Ionicons name="arrow-back" size={20} color="#BB86FC" />
                                     <Text style={styles.hintText}>{node.choices.left}</Text>
-                                </View>
-                                <View style={[styles.hintCard, styles.hintCardRight]}>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[styles.hintCard, styles.hintCardRight]} onPress={() => handleChoice('right')}>
                                     <Text style={[styles.hintText, styles.hintTextRight]}>{node.choices.right}</Text>
                                     <Ionicons name="arrow-forward" size={20} color="#BB86FC" />
-                                </View>
+                                </TouchableOpacity>
                             </View>
                         }
+                        {node.isEnding && (
+                            <View style={styles.endingHintContainer}>
+                                <TouchableOpacity style={[styles.hintCard, styles.hintCardCenter]} onPress={() => handleChoice('right')}>
+                                    <Text style={styles.hintText}>Swipe to continue...</Text>
+                                    <Ionicons name="arrow-forward" size={20} color="#BB86FC" />
+                                </TouchableOpacity>
+                            </View>
+                        )}
                     </ScrollView>
                 )}
 
@@ -259,6 +269,11 @@ const styles = StyleSheet.create({
     hintCardRight: {
         justifyContent: 'flex-end',
     },
+    hintCardCenter: {
+        justifyContent: 'center',
+        marginTop: 24,
+        marginBottom: 32,
+    },
     hintText: {
         fontSize: 14,
         color: '#E1E1E1',
@@ -293,5 +308,8 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "600",
         marginTop: 4,
+    },
+    endingHintContainer: {
+        paddingHorizontal: 16,
     },
 });

@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
         textShadowColor: "rgba(0, 0, 0, 0.75)",
         textShadowOffset: { width: 0, height: 2 },
         textShadowRadius: 10,
-        fontFamily: 'serif', // Or a custom font if available
+        fontFamily: 'serif',
     },
     storyContainer: {
         backgroundColor: 'rgba(0, 0, 0, 0.6)',
@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
         marginBottom: 40,
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.1)',
+        minHeight: 500,
     },
     storyText: {
         fontSize: 18,

@@ -1,5 +1,6 @@
 const API_URL = 'https://adventureswipe.onrender.com'
 const API_HOST = process.env.EXPO_PUBLIC_API_HOST || API_URL
+import * as FileSystem from 'expo-file-system/legacy';
 import { saveImage } from './imageStorage';
 
 function stripImages(node) {
@@ -8,8 +9,22 @@ function stripImages(node) {
 }
 
 export async function generateNextNode({ currentNode, choice, history, depth }) {
+  let imageToSend = currentNode.image;
+
+  if (imageToSend && imageToSend.startsWith('file://')) {
+    try {
+      const base64 = await FileSystem.readAsStringAsync(imageToSend, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      imageToSend = `data:image/png;base64,${base64}`;
+    } catch (e) {
+      console.warn("Failed to read image file for upload:", e);
+      // Fallback: send as is (will likely fail on backend but better than crashing here)
+    }
+  }
+
   const payload = {
-    currentNode,
+    currentNode: { ...currentNode, image: imageToSend },
     choice,
     history: history.map(n => stripImages(n)),
     depth
@@ -28,7 +43,7 @@ export async function generateNextNode({ currentNode, choice, history, depth }) 
   if (data.image) {
     data.image = await saveImage(data.image);
   }
-  
+
   return data;
 }
 
