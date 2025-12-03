@@ -1,7 +1,7 @@
-import { useAudioPlayer } from 'expo-audio';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Dimensions,
@@ -12,10 +12,13 @@ import {
     View,
 } from "react-native";
 import { ScrollView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { generateNewGameNode, generateNextNode } from "../common/api";
+import { useAudio } from '../common/AudioContext';
 import { clearAllImages } from "../common/imageStorage";
 import { clearSave, loadSave, saveGame } from "../common/storage";
 import SwipeableCard from './components/SwipeableCard';
+import AudioControl from './components/AudioControl';
 import EndScreen from "./screens/EndScreen";
 import HistoryScreen from "./screens/HistoryScreen";
 
@@ -46,14 +49,20 @@ export default function GameScreen() {
     const [showHints, setShowHints] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
     const [showEnd, setShowEnd] = useState(false);
-    const player = useAudioPlayer('https://musicfile.api.box/YzA3ZjcwYjgtNWRlNy00MTg4LWI4NjItYjY2ZTZiNGFiYjA1.mp3');
+    const { play, pause, resume } = useAudio();
+    const GAME_MUSIC = 'https://musicfile.api.box/YzA3ZjcwYjgtNWRlNy00MTg4LWI4NjItYjY2ZTZiNGFiYjA1.mp3';
+    const END_MUSIC = 'https://musicfile.api.box/NzI4MGZkODMtOWI2My00ZmM0LThiOTctNzFlMjMwNzE1YTg2.mp3';
+
 
     const depth = useRef(0);
 
+    useFocusEffect(
+        useCallback(() => {
+            play(GAME_MUSIC);
+        }, [])
+    );
+
     useEffect(() => {
-        player.seekTo(0);
-        player.loop = true;
-        player.play();
         (async () => {
             if (params.newGame) {
                 onNewGame();
@@ -94,7 +103,7 @@ export default function GameScreen() {
     async function handleChoice(choice) {
         if (node.isEnding) {
             // if (true) {
-            player.replace('https://musicfile.api.box/NzI4MGZkODMtOWI2My00ZmM0LThiOTctNzFlMjMwNzE1YTg2.mp3')
+            play(END_MUSIC);
             setShowEnd(true);
             return;
         }
@@ -133,6 +142,7 @@ export default function GameScreen() {
                     colors={['transparent', '#121212']}
                     style={styles.gradient}
                 />
+                <AudioControl style={styles.muteButton} />
             </View>
 
             <View style={styles.bottom}>
@@ -156,17 +166,22 @@ export default function GameScreen() {
                     </ScrollView>
                 )}
 
-                <View style={styles.footerRow}>
-                    <TouchableOpacity onPress={onNewGame}>
-                        <Text style={[styles.smallLink, { color: "tomato" }]}>Restart</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={onExit}>
-                        <Text style={[styles.smallLink, { color: "#999" }]}>Menu</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setShowHistory(true)}>
-                        <Text style={[styles.smallLink, { color: "purple" }]}>History</Text>
-                    </TouchableOpacity>
-                </View>
+                <SafeAreaView edges={['bottom']} style={styles.footerContainer}>
+                    <View style={styles.footerRow}>
+                        <TouchableOpacity style={styles.footerButton} onPress={onNewGame}>
+                            <Ionicons name="refresh-circle-outline" size={28} color="tomato" />
+                            <Text style={[styles.footerLabel, { color: "tomato" }]}>Restart</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.footerButton} onPress={onExit}>
+                            <Ionicons name="grid-outline" size={24} color="#999" />
+                            <Text style={[styles.footerLabel, { color: "#999" }]}>Menu</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.footerButton} onPress={() => setShowHistory(true)}>
+                            <Ionicons name="time-outline" size={24} color="#BB86FC" />
+                            <Text style={[styles.footerLabel, { color: "#BB86FC" }]}>History</Text>
+                        </TouchableOpacity>
+                    </View>
+                </SafeAreaView>
             </View>
         </View>
     );
@@ -178,7 +193,8 @@ const styles = StyleSheet.create({
         backgroundColor: "#121212"
     },
     top: {
-        height: TOP_IMAGE_HEIGHT
+        height: TOP_IMAGE_HEIGHT,
+        position: 'relative',
     },
     image: {
         flex: 1
@@ -189,6 +205,14 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
         height: 100,
+    },
+    muteButton: {
+        position: 'absolute',
+        top: 50, // Adjust based on safe area if needed, or use SafeAreaView
+        right: 20,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        borderRadius: 20,
+        padding: 8,
     },
     appTitle: {
         fontSize: 22,
@@ -222,16 +246,25 @@ const styles = StyleSheet.create({
         color: '#888',
         fontWeight: '500',
     },
-    footerRow: {
-        margin: 16,
-        marginTop: 12,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
+    footerContainer: {
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(255,255,255,0.1)',
     },
-    smallLink: {
-        color: "#BB86FC",
-        fontSize: 16,
-        fontWeight: "600"
+    footerRow: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+        alignItems: "center",
+        paddingVertical: 12,
+    },
+    footerButton: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 60,
+    },
+    footerLabel: {
+        fontSize: 12,
+        fontWeight: "600",
+        marginTop: 4,
     },
 });

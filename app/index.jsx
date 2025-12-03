@@ -1,6 +1,8 @@
-import { useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, ImageBackground, Pressable, StyleSheet, Text, View } from "react-native";
+import { useAudio } from "../common/AudioContext";
+import AudioControl from "./components/AudioControl";
 import { loadSave } from "../common/storage";
 
 export default function StartScreen() {
@@ -8,6 +10,14 @@ export default function StartScreen() {
   const [hasSave, setHasSave] = useState(false);
   const startScaleAnim = useRef(new Animated.Value(1)).current;
   const loadScaleAnim = useRef(new Animated.Value(1)).current;
+  const { play, pause, resume } = useAudio();
+  const START_MUSIC = 'https://musicfile.api.box/MmQyYzNlYjAtZWRjMC00OTNiLWFlNjQtNmFiZDg5NTQyMTgy.mp3';
+
+  useFocusEffect(
+    useCallback(() => {
+      play(START_MUSIC);
+    }, [])
+  );
 
   useEffect(() => {
     (async () => {
@@ -17,10 +27,12 @@ export default function StartScreen() {
   }, []);
 
   const onStart = () => {
+    // player.remove();
     router.push("/game?newGame=true");
   };
 
   const onContinue = () => {
+    // player.remove();
     router.push("/game");
   };
 
@@ -52,6 +64,7 @@ export default function StartScreen() {
       <View style={styles.overlay} />
 
       <View style={styles.container}>
+        <AudioControl style={styles.audioControl} />
         <Text style={styles.title}>AdventureSwipe</Text>
         <Text style={styles.tagline}>Shape your fate with a single swipe</Text>
 
@@ -100,6 +113,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     paddingHorizontal: 30,
+  },
+  audioControl: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
   },
   title: {
     fontSize: 44,
