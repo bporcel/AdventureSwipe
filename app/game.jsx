@@ -3,21 +3,22 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
     Dimensions,
     ImageBackground,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 import { ScrollView } from 'react-native-gesture-handler';
+import Animated, { FadeIn, FadeOut, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { generateNewGameNode, generateNextNode } from "../common/api";
 import { useAudio } from '../common/AudioContext';
 import { clearAllImages } from "../common/imageStorage";
 import { clearSave, loadSave, saveGame } from "../common/storage";
 import AudioControl from './components/AudioControl';
+import LoadingRune from './components/LoadingRune';
 import SwipeableCard from './components/SwipeableCard';
 import EndScreen from "./screens/EndScreen";
 import HistoryScreen from "./screens/HistoryScreen";
@@ -44,6 +45,8 @@ export default function GameScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
     const [node, setNode] = useState(INITIAL_NODE);
+    const [prevImage, setPrevImage] = useState(null);
+    const imageOpacity = useSharedValue(1);
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showHints, setShowHints] = useState(false);
@@ -92,6 +95,7 @@ export default function GameScreen() {
         await clearAllImages();
         setHistory([]);
         const newNode = await generateNewGameNode();
+        setPrevImage(null);
         setNode(newNode);
         depth.current = 0;
         setLoading(false);
@@ -114,7 +118,10 @@ export default function GameScreen() {
 
         try {
             const newNode = await generateNextNode({ currentNode: node, choice, history, depth: depth.current });
+            setPrevImage(node.image);
             setNode(newNode);
+            imageOpacity.value = 0;
+            imageOpacity.value = withTiming(1, { duration: 1000 });
         } catch (err) {
             console.error(err);
         } finally {
@@ -137,7 +144,12 @@ export default function GameScreen() {
     return (
         <View style={styles.container}>
             <View style={styles.top}>
-                <ImageBackground source={{ uri: node.image }} style={styles.image} resizeMode="cover" />
+                {prevImage && (
+                    <ImageBackground source={{ uri: prevImage }} style={[styles.image, StyleSheet.absoluteFill]} resizeMode="cover" />
+                )}
+                <Animated.View style={[styles.image, { opacity: imageOpacity }]}>
+                    <ImageBackground source={{ uri: node.image }} style={styles.image} resizeMode="cover" />
+                </Animated.View>
                 <LinearGradient
                     colors={['transparent', '#121212']}
                     style={styles.gradient}
@@ -148,11 +160,13 @@ export default function GameScreen() {
             <View style={styles.bottom}>
                 {loading ? (
                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                        <ActivityIndicator size="large" color="#BB86FC" />
+                        <LoadingRune />
                     </View>
                 ) : (
                     <ScrollView>
-                        <SwipeableCard text={node.text} onSwipe={handleChoice} onPress={onSwipeablePress} />
+                        <Animated.View entering={FadeIn.duration(500)} exiting={FadeOut.duration(300)}>
+                            <SwipeableCard text={node.text} onSwipe={handleChoice} onPress={onSwipeablePress} />
+                        </Animated.View>
                         {!node.isEnding && showHints &&
                             <View style={styles.hintContainer}>
                                 <TouchableOpacity style={[styles.hintCard, styles.hintCardLeft]} onPress={() => handleChoice('left')}>
