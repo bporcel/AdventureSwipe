@@ -119,7 +119,11 @@ app.get("/new-game", async (req, res) => {
 });
 
 async function generateNodeForChoice({ currentNode = null, choice = 'start', history = [], forcedPrompt = null, depth = 0, signal }) {
-    const recentHistory = history.slice(-5).map((n, i) => `(${i + 1}) ${n.text}`).join("\n");
+    let contextNodes = history.slice(-5);
+    if (history.length > 0 && history[0] && !contextNodes.some(n => n.id === history[0].id)) {
+        contextNodes = [history[0], ...contextNodes];
+    }
+    const recentHistory = contextNodes.map((n, i) => `(${i + 1}) ${n.text}`).join("\n");
     const prompt = createPrompt(recentHistory, currentNode, choice, forcedPrompt, depth);
 
     const storyKey = crypto.createHash("sha256").update(prompt).digest("hex");

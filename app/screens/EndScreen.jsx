@@ -43,7 +43,7 @@ const BackgroundImage = ({ uri, index, scrollY, layout }) => {
                 resizeMode="cover"
             />
             <LinearGradient
-                colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.8)', '#121212']}
+                colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.5)', '#121212']}
                 style={StyleSheet.absoluteFill}
             />
         </Animated.View>
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     },
     textBlock: {
         marginBottom: 32,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
         padding: 24,
         borderRadius: 16,
         borderWidth: 1,
