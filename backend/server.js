@@ -6,13 +6,29 @@ const Bottleneck = require("bottleneck");
 const crypto = require("crypto");
 const OpenAI = require("openai");
 const { GoogleGenAI } = require("@google/genai");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const { SYSTEM_STORY_PROMPT, SYSTEM_IMAGE_PROMPT, CACHE_TTL, RATE_LIMIT_MS } = require("./config");
 
 
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// Security Middleware
+app.use(helmet());
+
+// Rate Limiting
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    message: { error: "Too many requests, please try again later." }
+});
+app.use(apiLimiter);
+
+app.use(cors()); // Allow all origins for now, but Helmet adds security headers
 
 app.use(express.json({ limit: '50mb' }));
 
@@ -40,6 +56,14 @@ const limiter = new Bottleneck({ minTime: RATE_LIMIT_MS });  // at least 1.5s be
 app.post("/next", async (req, res) => {
     try {
         const { currentNode, choice, history = [], depth } = req.body;
+
+        // Input Validation
+        if (!currentNode || !currentNode.id) {
+            return res.status(400).json({ error: "Invalid request: currentNode is required." });
+        }
+        if (!choice) {
+            return res.status(400).json({ error: "Invalid request: choice is required." });
+        }
 
         if (currentNode.isEnding === true) {
             console.log('ending reached');
