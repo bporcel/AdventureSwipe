@@ -1,83 +1,121 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
-import { ImageBackground, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { useState } from 'react';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, {
+    Extrapolation,
+    interpolate,
+    useAnimatedScrollHandler,
+    useAnimatedStyle,
+    useSharedValue,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import TypeWriter from 'react-native-typewriter';
 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-export default function StoryEndScreen({ history, onBackToMenu, onRestart, backgroundImage }) {
-    const [fullHistory, setFullHistory] = useState(null);
-    const [displayButtons, setDisplayButtons] = useState(false);
+const BackgroundImage = ({ uri, index, scrollY, layout }) => {
+    const animatedStyle = useAnimatedStyle(() => {
+        if (!layout) return { opacity: 0 };
 
-    useEffect(() => {
-        let text = "";
-        history.forEach((node) => {
-            text += node.text + '\n\n';
-        })
+        const itemY = layout.y;
+        const itemHeight = layout.height;
+        const itemCenter = itemY + itemHeight / 2;
 
-        setFullHistory(text);
+        // Calculate opacity based on how close the text block is to the center of the screen
+        // We use a broader range to ensure smooth transitions
+        const opacity = interpolate(
+            scrollY.value + SCREEN_HEIGHT / 2,
+            [itemCenter - SCREEN_HEIGHT * 0.8, itemCenter, itemCenter + SCREEN_HEIGHT * 0.8],
+            [0, 1, 0],
+            Extrapolation.CLAMP
+        );
 
-    }, []);
-
-    function handleTypingEnd() {
-        setDisplayButtons(true);
-    }
-
-    function handlePress() {
-        if (!displayButtons) {
-            handleTypingEnd();
-        }
-    }
+        return {
+            opacity,
+        };
+    });
 
     return (
-        <ImageBackground
-            source={{ uri: backgroundImage || 'https://placehold.co/400x600/png' }}
-            style={styles.container}
-            resizeMode="cover"
-        >
+        <Animated.View style={[StyleSheet.absoluteFill, animatedStyle]} pointerEvents="none">
+            <Animated.Image
+                source={{ uri: uri || 'https://placehold.co/400x600/png' }}
+                style={StyleSheet.absoluteFill}
+                resizeMode="cover"
+            />
             <LinearGradient
                 colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.8)', '#121212']}
-                style={styles.gradient}
+                style={StyleSheet.absoluteFill}
             />
+        </Animated.View>
+    );
+};
+
+export default function StoryEndScreen({ history, onBackToMenu, onRestart }) {
+    const scrollY = useSharedValue(0);
+    const [layouts, setLayouts] = useState({});
+
+    const scrollHandler = useAnimatedScrollHandler((event) => {
+        scrollY.value = event.contentOffset.y;
+    });
+
+    const handleLayout = (index, event) => {
+        const { y, height } = event.nativeEvent.layout;
+        setLayouts((prev) => ({
+            ...prev,
+            [index]: { y, height },
+        }));
+    };
+
+    return (
+        <View style={styles.container}>
+            {/* Background Layer */}
+            <View style={StyleSheet.absoluteFill}>
+                {history.map((node, index) => (
+                    <BackgroundImage
+                        key={`bg-${index}`}
+                        uri={node.image}
+                        index={index}
+                        scrollY={scrollY}
+                        layout={layouts[index]}
+                    />
+                ))}
+            </View>
+
+            {/* Content Layer */}
             <SafeAreaView style={styles.safeArea}>
-                <ScrollView contentContainerStyle={styles.scrollContent}>
+                <Animated.ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    onScroll={scrollHandler}
+                    scrollEventThrottle={16}
+                >
                     <Text style={styles.title}>The End</Text>
 
-                    <Pressable style={styles.storyContainer} onPress={handlePress}>
-                        {fullHistory && (
-                            displayButtons ? (
-                                <Text style={styles.storyText}>{fullHistory}</Text>
-                            ) : (
-                                <TypeWriter
-                                    typing={1}
-                                    maxDelay={10}
-                                    style={styles.storyText}
-                                    onTypingEnd={handleTypingEnd}
-                                >
-                                    {fullHistory}
-                                </TypeWriter>
-                            )
-                        )}
-                    </Pressable>
+                    <View style={styles.storyWrapper}>
+                        {history.map((node, index) => (
+                            <View
+                                key={`text-${index}`}
+                                onLayout={(e) => handleLayout(index, e)}
+                                style={styles.textBlock}
+                            >
+                                <Text style={styles.storyText}>{node.text}</Text>
+                            </View>
+                        ))}
+                    </View>
 
-                    {displayButtons && (
-                        <View style={styles.buttonContainer}>
-                            <TouchableOpacity style={[styles.button, styles.restartButton]} onPress={onRestart}>
-                                <Ionicons name="refresh" size={24} color="#fff" style={styles.buttonIcon} />
-                                <Text style={styles.buttonText}>Restart Adventure</Text>
-                            </TouchableOpacity>
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity style={[styles.button, styles.restartButton]} onPress={onRestart}>
+                            <Ionicons name="refresh" size={24} color="#fff" style={styles.buttonIcon} />
+                            <Text style={styles.buttonText}>Restart Adventure</Text>
+                        </TouchableOpacity>
 
-                            <TouchableOpacity style={[styles.button]} onPress={onBackToMenu}>
-                                <Ionicons name="grid-outline" size={24} color="#ccc" style={styles.buttonIcon} />
-                                <Text style={styles.buttonText}>Back to Menu</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                </ScrollView>
+                        <TouchableOpacity style={[styles.button]} onPress={onBackToMenu}>
+                            <Ionicons name="grid-outline" size={24} color="#ccc" style={styles.buttonIcon} />
+                            <Text style={styles.buttonText}>Back to Menu</Text>
+                        </TouchableOpacity>
+                    </View>
+                </Animated.ScrollView>
             </SafeAreaView>
-        </ImageBackground>
+        </View>
     );
 };
 
@@ -86,21 +124,18 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#121212',
     },
-    gradient: {
-        ...StyleSheet.absoluteFillObject,
-    },
     safeArea: {
         flex: 1,
     },
     scrollContent: {
         padding: 24,
-        paddingBottom: 40,
+        paddingBottom: 100,
     },
     title: {
         fontSize: 42,
         fontWeight: '900',
         color: '#fff',
-        marginBottom: 30,
+        marginBottom: 40,
         marginTop: 20,
         textAlign: "center",
         letterSpacing: 2,
@@ -109,14 +144,16 @@ const styles = StyleSheet.create({
         textShadowRadius: 10,
         fontFamily: 'serif',
     },
-    storyContainer: {
+    storyWrapper: {
+        marginBottom: 40,
+    },
+    textBlock: {
+        marginBottom: 32,
         backgroundColor: 'rgba(0, 0, 0, 0.6)',
         padding: 24,
         borderRadius: 16,
-        marginBottom: 40,
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.1)',
-        minHeight: 500,
     },
     storyText: {
         fontSize: 18,
@@ -128,6 +165,7 @@ const styles = StyleSheet.create({
     buttonContainer: {
         gap: 16,
         alignItems: 'center',
+        marginTop: 20,
     },
     button: {
         backgroundColor: "#1E1E1E",
@@ -147,7 +185,6 @@ const styles = StyleSheet.create({
         elevation: 6,
     },
     restartButton: {
-        // Keeping the red accent for restart but using the new shape/shadow
         borderColor: "#e74c3c",
         shadowColor: "#e74c3c",
     },
@@ -160,9 +197,5 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         letterSpacing: 1,
         textTransform: "uppercase",
-    },
-    menuButtonText: {
-        color: '#ccc',
-        fontSize: 16,
     },
 });
