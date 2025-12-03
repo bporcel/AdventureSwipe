@@ -8,7 +8,7 @@ export default function AboutScreen() {
     const router = useRouter();
 
     const handlePrivacyPolicy = () => {
-        Linking.openURL('https://bporcel.notion.site/Adventure-Swipe-Privacy-Policy-2be8856a4cde803aa2c7ecc4f74edbce?source=copy_link');
+        Linking.openURL('https://bporcel.notion.site/Adventure-Swipe-Legal-2be8856a4cde803aa2c7ecc4f74edbce');
     };
 
     return (
@@ -63,7 +63,7 @@ export default function AboutScreen() {
                         <TouchableOpacity style={styles.row} onPress={handlePrivacyPolicy}>
                             <View style={styles.rowLabelContainer}>
                                 <Ionicons name="document-text-outline" size={24} color="#E1E1E1" />
-                                <Text style={styles.rowLabel}>Privacy Policy</Text>
+                                <Text style={styles.rowLabel}>Privacy Policy & Terms of Service</Text>
                             </View>
                             <Ionicons name="chevron-forward" size={20} color="#666" />
                         </TouchableOpacity>
