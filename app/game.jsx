@@ -153,14 +153,14 @@ export default function GameScreen() {
                     <ScrollView>
                         <SwipeableCard text={node.text} onSwipe={handleChoice} onPress={onSwipeablePress} />
                         {!node.isEnding && showHints &&
-                            <View style={styles.hintRow}>
-                                <View style={styles.hintBox}>
-                                    <Text style={styles.hint}>{'\u276E'}</Text>
-                                    <Text style={styles.hint}>{node.choices.left}</Text>
+                            <View style={styles.hintContainer}>
+                                <View style={[styles.hintCard, styles.hintCardLeft]}>
+                                    <Ionicons name="arrow-back" size={20} color="#BB86FC" />
+                                    <Text style={styles.hintText}>{node.choices.left}</Text>
                                 </View>
-                                <View style={styles.hintBox}>
-                                    <Text style={styles.hint}>{node.choices.right}</Text>
-                                    <Text style={styles.hint}>{'\u276F'}</Text>
+                                <View style={[styles.hintCard, styles.hintCardRight]}>
+                                    <Text style={[styles.hintText, styles.hintTextRight]}>{node.choices.right}</Text>
+                                    <Ionicons name="arrow-forward" size={20} color="#BB86FC" />
                                 </View>
                             </View>
                         }
@@ -229,23 +229,49 @@ const styles = StyleSheet.create({
         padding: 16,
         padding: 0
     },
-    hintRow: {
+    hintContainer: {
         flexDirection: 'row',
-        margin: 16,
-        marginTop: 10,
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        marginTop: 16,
+        marginBottom: 32,
+        gap: 12,
     },
-    hintBox: {
+    hintCard: {
         flex: 1,
+        backgroundColor: '#252525',
+        borderRadius: 12,
+        padding: 12,
         flexDirection: 'row',
-        justifyContent: "space-between",
-        alignItems: 'flex-start',
-        paddingVertical: 8,
-        marginHorizontal: 5,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#333',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 3,
+        minWidth: 0,
     },
-    hint: {
-        fontSize: 13,
-        color: '#888',
+    hintCardLeft: {
+        justifyContent: 'flex-start',
+    },
+    hintCardRight: {
+        justifyContent: 'flex-end',
+    },
+    hintText: {
+        fontSize: 14,
+        color: '#E1E1E1',
         fontWeight: '500',
+        flex: 1,
+        marginLeft: 8,
+        lineHeight: 20,
+        flexShrink: 1,
+    },
+    hintTextRight: {
+        textAlign: 'right',
+        marginRight: 8,
+        marginLeft: 0,
     },
     footerContainer: {
         backgroundColor: 'rgba(0,0,0,0.3)',
