@@ -17,8 +17,8 @@ import { generateNewGameNode, generateNextNode } from "../common/api";
 import { useAudio } from '../common/AudioContext';
 import { clearAllImages } from "../common/imageStorage";
 import { clearSave, loadSave, saveGame } from "../common/storage";
-import SwipeableCard from './components/SwipeableCard';
 import AudioControl from './components/AudioControl';
+import SwipeableCard from './components/SwipeableCard';
 import EndScreen from "./screens/EndScreen";
 import HistoryScreen from "./screens/HistoryScreen";
 
@@ -49,7 +49,7 @@ export default function GameScreen() {
     const [showHints, setShowHints] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
     const [showEnd, setShowEnd] = useState(false);
-    const { play, pause, resume } = useAudio();
+    const { play } = useAudio();
     const GAME_MUSIC = 'https://musicfile.api.box/YzA3ZjcwYjgtNWRlNy00MTg4LWI4NjItYjY2ZTZiNGFiYjA1.mp3';
     const END_MUSIC = 'https://musicfile.api.box/NzI4MGZkODMtOWI2My00ZmM0LThiOTctNzFlMjMwNzE1YTg2.mp3';
 
@@ -59,7 +59,7 @@ export default function GameScreen() {
     useFocusEffect(
         useCallback(() => {
             play(GAME_MUSIC);
-        }, [])
+        }, [play])
     );
 
     useEffect(() => {
@@ -87,6 +87,7 @@ export default function GameScreen() {
 
     const onNewGame = async () => {
         setLoading(true);
+        setShowEnd(false);
         await clearSave();
         await clearAllImages();
         setHistory([]);
@@ -131,7 +132,7 @@ export default function GameScreen() {
     }
 
     if (showEnd) {
-        return <EndScreen onBackToMenu={onExit} onClose={onExit} history={history} />
+        return <EndScreen onBackToMenu={onExit} onClose={onExit} history={history} backgroundImage={node.image} onRestart={onNewGame} />
     }
 
     return (

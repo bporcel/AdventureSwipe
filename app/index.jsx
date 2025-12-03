@@ -2,21 +2,21 @@ import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, ImageBackground, Pressable, StyleSheet, Text, View } from "react-native";
 import { useAudio } from "../common/AudioContext";
-import AudioControl from "./components/AudioControl";
 import { loadSave } from "../common/storage";
+import AudioControl from "./components/AudioControl";
 
 export default function StartScreen() {
   const router = useRouter();
   const [hasSave, setHasSave] = useState(false);
   const startScaleAnim = useRef(new Animated.Value(1)).current;
   const loadScaleAnim = useRef(new Animated.Value(1)).current;
-  const { play, pause, resume } = useAudio();
+  const { play } = useAudio();
   const START_MUSIC = 'https://musicfile.api.box/MmQyYzNlYjAtZWRjMC00OTNiLWFlNjQtNmFiZDg5NTQyMTgy.mp3';
 
   useFocusEffect(
     useCallback(() => {
       play(START_MUSIC);
-    }, [])
+    }, [play])
   );
 
   useEffect(() => {
@@ -27,12 +27,10 @@ export default function StartScreen() {
   }, []);
 
   const onStart = () => {
-    // player.remove();
     router.push("/game?newGame=true");
   };
 
   const onContinue = () => {
-    // player.remove();
     router.push("/game");
   };
 
@@ -59,7 +57,7 @@ export default function StartScreen() {
       source={require("../assets/images/start-bg.jpg")}
       style={styles.bg}
       resizeMode="cover"
-      imageStyle={{ opacity: 0.55 }}
+      imageStyle={{ opacity: 0.75 }}
     >
       <View style={styles.overlay} />
 
@@ -73,9 +71,9 @@ export default function StartScreen() {
             onPress={onStart}
             onPressIn={() => pressIn(startScaleAnim)}
             onPressOut={() => pressOut(startScaleAnim)}
-            style={styles.startButton}
+            style={[styles.button, styles.startButton]}
           >
-            <Text style={styles.startButtonText}>Start Adventure</Text>
+            <Text style={styles.buttonText}>Start Adventure</Text>
           </Pressable>
         </Animated.View>
 
@@ -85,9 +83,9 @@ export default function StartScreen() {
               onPress={onContinue}
               onPressIn={() => pressIn(loadScaleAnim)}
               onPressOut={() => pressOut(loadScaleAnim)}
-              style={styles.startButton}
+              style={styles.button}
             >
-              <Text style={styles.startButtonText}>Load Game</Text>
+              <Text style={styles.buttonText}>Load Game</Text>
             </Pressable>
           </Animated.View>
         )}
@@ -139,7 +137,7 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     opacity: 0.9,
   },
-  startButton: {
+  button: {
     backgroundColor: "#1E1E1E",
     paddingVertical: 20,
     paddingHorizontal: 40,
@@ -153,7 +151,11 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
-  startButtonText: {
+  startButton: {
+    borderColor: "#e74c3c",
+    shadowColor: "#e74c3c",
+  },
+  buttonText: {
     color: "#E1E1E1",
     fontSize: 20,
     fontWeight: "700",

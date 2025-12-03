@@ -1,5 +1,5 @@
 import { useAudioPlayer } from 'expo-audio';
-import { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 const AudioContext = createContext(null);
 
@@ -29,6 +29,7 @@ export const AudioProvider = ({ children }) => {
     const START_MUSIC = 'https://musicfile.api.box/MmQyYzNlYjAtZWRjMC00OTNiLWFlNjQtNmFiZDg5NTQyMTgy.mp3';
     const player = useAudioPlayer(START_MUSIC);
     const [currentSource, setCurrentSource] = useState(START_MUSIC);
+    const currentSourceRef = useRef(START_MUSIC);
     const [isMuted, setIsMuted] = useState(false);
 
     useEffect(() => {
@@ -38,9 +39,9 @@ export const AudioProvider = ({ children }) => {
         }
     }, [player]);
 
-    const play = (source) => {
+    const play = useCallback((source) => {
         if (!player) return;
-        if (currentSource === source) {
+        if (currentSourceRef.current === source) {
             player.play();
             return;
         }
@@ -49,37 +50,38 @@ export const AudioProvider = ({ children }) => {
         player.loop = true;
         player.play();
         setCurrentSource(source);
-    };
+        currentSourceRef.current = source;
+    }, [player]);
 
-    const pause = () => {
+    const pause = useCallback(() => {
         player?.pause();
-    };
+    }, [player]);
 
-    const resume = () => {
+    const resume = useCallback(() => {
         player?.play();
-    };
+    }, [player]);
 
-    const mute = () => {
+    const mute = useCallback(() => {
         if (player) {
             player.muted = true;
             setIsMuted(true);
         }
-    };
+    }, [player]);
 
-    const unmute = () => {
+    const unmute = useCallback(() => {
         if (player) {
             player.muted = false;
             setIsMuted(false);
         }
-    };
+    }, [player]);
 
-    const toggleMute = () => {
+    const toggleMute = useCallback(() => {
         if (isMuted) {
             unmute();
         } else {
             mute();
         }
-    };
+    }, [isMuted, mute, unmute]);
 
     const value = {
         play,
