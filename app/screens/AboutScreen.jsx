@@ -1,11 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AboutScreen() {
     const router = useRouter();
+
+    const handlePrivacyPolicy = () => {
+        Linking.openURL('https://bporcel.notion.site/Adventure-Swipe-Privacy-Policy-2be8856a4cde803aa2c7ecc4f74edbce?source=copy_link');
+    };
 
     return (
         <View style={styles.container}>
@@ -52,6 +56,17 @@ export default function AboutScreen() {
                             <Text style={styles.creditLabel}>Visuals AI</Text>
                             <Text style={styles.creditValue}>Google Gemini Flash</Text>
                         </View>
+                    </View>
+
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Legal</Text>
+                        <TouchableOpacity style={styles.row} onPress={handlePrivacyPolicy}>
+                            <View style={styles.rowLabelContainer}>
+                                <Ionicons name="document-text-outline" size={24} color="#E1E1E1" />
+                                <Text style={styles.rowLabel}>Privacy Policy</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={20} color="#666" />
+                        </TouchableOpacity>
                     </View>
 
                     <View style={styles.footer}>
@@ -148,5 +163,21 @@ const styles = StyleSheet.create({
     footerText: {
         color: '#666',
         fontSize: 12,
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 12,
+    },
+    rowLabelContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    rowLabel: {
+        fontSize: 16,
+        color: '#E1E1E1',
+        fontWeight: '500',
     },
 });

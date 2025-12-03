@@ -28,6 +28,8 @@ export default function SettingsScreen() {
         );
     };
 
+
+
     return (
         <View style={styles.container}>
             <LinearGradient
@@ -71,6 +73,7 @@ export default function SettingsScreen() {
                             <Ionicons name="chevron-forward" size={20} color="#666" />
                         </TouchableOpacity>
                     </View>
+
                 </View>
             </SafeAreaView>
         </View>
