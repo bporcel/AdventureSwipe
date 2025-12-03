@@ -6,6 +6,7 @@ const Bottleneck = require("bottleneck");
 const crypto = require("crypto");
 const OpenAI = require("openai");
 const { GoogleGenAI } = require("@google/genai");
+const { SYSTEM_STORY_PROMPT, SYSTEM_IMAGE_PROMPT, CACHE_TTL, RATE_LIMIT_MS } = require("./config");
 
 
 dotenv.config();
@@ -23,61 +24,18 @@ const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY
 });
 
-const storyCache = new NodeCache({ stdTTL: 3600 }); // cached story nodes by prompt hash
-const imageCache = new NodeCache({ stdTTL: 24 * 3600 }); // cached images by prompt hash
-const preloadCache = new NodeCache({ stdTTL: 3600 }); // preloaded nodes keyed by `${nodeId}:${choice}`
+const storyCache = new NodeCache({ stdTTL: CACHE_TTL.STORY }); // cached story nodes by prompt hash
+const imageCache = new NodeCache({ stdTTL: CACHE_TTL.IMAGE }); // cached images by prompt hash
+const preloadCache = new NodeCache({ stdTTL: CACHE_TTL.PRELOAD }); // preloaded nodes keyed by `${nodeId}:${choice}`
 const pendingPreloads = new Map(); // Key: `${nodeId}:${choice}`, Value: { promise, controller }
-const limiter = new Bottleneck({ minTime: 1500 });  // at least 1.5s between image requests
+const limiter = new Bottleneck({ minTime: RATE_LIMIT_MS });  // at least 1.5s between image requests
 
 // - depth 0: Introduction → Clear objective, high stakes.
 // - depth 1–3: Rising Action → Escalating challenges.
 // - depth 4: Climax → Final confrontation.
 // - depth ≥ 5: Ending → definitive conclusion.
 
-const SYSTEM_PROMPT = `
-    You are an AI storyteller generating scenes for a swipe-based "choose your own adventure" mobile game.
-
-    The story must be SHORT and INTENSE. It must resolve in approximately 5-6 scenes.
-
-    ────────────────────────
-    STORY STRUCTURE (STRICT)
-    ────────────────────────
-    You will receive a "depth" parameter. You MUST follow this structure:
-
-    - Depth 0 (Start): Introduce the Main Objective immediately. High stakes from the get-go.
-    - Depth 1-3 (Rising Action): Escalate the danger. Each choice must have immediate consequences.
-    - Depth 4 (Climax): The final obstacle or confrontation.
-    - Depth >= 5 (Ending): THE STORY MUST END.
-
-    ────────────────────────
-    ENDING RULES (CRITICAL)
-    ────────────────────────
-    - If depth >= 5, you MUST set "isEnding": true.
-    - The scene must be a definitive conclusion (Success or Failure).
-    - "choices" object must contain empty strings: { "left": "", "right": "" }.
-    - NO cliffhangers. NO "to be continued".
-    - The text must clearly state the outcome of the main objective.
-
-    ────────────────────────
-    VISUALS
-    ────────────────────────
-    - Maintain consistent art style (Digital Oil Painting).
-    - If the location hasn't changed, explicitly repeat the environment description in the "image" prompt.
-
-    ────────────────────────
-    RESPONSE FORMAT
-    ────────────────────────
-    Return ONLY valid JSON:
-    {
-        "image": "detailed visual description...",
-        "text": "story text (max 60 words)",
-        "choices": {
-            "left": "Action 1",
-            "right": "Action 2"
-        },
-        "isEnding": boolean
-    }
-`;
+// SYSTEM_PROMPT moved to config.js
 
 app.post("/next", async (req, res) => {
     try {
@@ -127,12 +85,12 @@ app.post("/next", async (req, res) => {
                 preloadChoice(result, "right", [...(history || []), result], depth + 1);
             } catch (e) {
                 console.error("Generation failed with error => ", e)
-                res.status(500).json({ error: "Server error generating story" });
+                res.status(500).json({ error: "Server error generating story", details: e.message });
             }
         }
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Server error generating story" });
+        console.error("Critical error in /next endpoint:", err);
+        res.status(500).json({ error: "Server error generating story", details: err.message });
     }
 });
 
@@ -155,8 +113,8 @@ app.get("/new-game", async (req, res) => {
             }
         }
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Server error generating story" });
+        console.error("Critical error in /new-game endpoint:", err);
+        res.status(500).json({ error: "Server error generating story", details: err.message });
     }
 });
 
@@ -258,7 +216,7 @@ const getStory = async (prompt, signal) => {
     return await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: SYSTEM_STORY_PROMPT },
             { role: "user", content: prompt },
         ],
         temperature: 0.8,
@@ -273,24 +231,7 @@ const getImage = async (prompt, referenceImage) => {
         const parts = [];
 
         parts.push({
-            text: `
-            You are a lead concept artist for a dark fantasy RPG.
-            
-            TASK: Generate the NEXT frame in a continuous story.
-            
-            INPUT CONTEXT:
-            - The user has provided a reference image (the previous scene).
-            - STRICTLY maintain the same: Art style (Digital Oil Painting), Color Palette, Lighting conditions, and Environmental details.
-            - CHANGE only: The action or perspective described in the prompt below.
-            
-            PROMPT: ${prompt}
-            
-            STYLE GUIDE:
-            - Digital oil painting, visible brushstrokes.
-            - Cinematic rim lighting.
-            - Gritty, weathered details.
-            - No photorealism, no 3D render look.
-            `
+            text: SYSTEM_IMAGE_PROMPT.replace("{prompt}", prompt),
         });
 
         if (referenceImage) {
@@ -318,6 +259,9 @@ const getImage = async (prompt, referenceImage) => {
                     temperature: 0.7,
                 }
             }
+        }).catch(err => {
+            console.error("Gemini API Error:", err);
+            return null; // Return null on image generation failure to allow story to proceed without image
         });
     });
 }
@@ -345,8 +289,3 @@ app.get("/", (req, res) => {
 app.listen(process.env.PORT || 5000, () =>
     console.log(`✅ ${process.env.NODE_ENV} environment => Backend running on port ${process.env.PORT || 5000}`)
 );
-
-
-// setInterval(() => {
-//     console.log("Story cache size:", storyCache.getStats().keys, "Image cache size:", imageCache.getStats().keys);
-//   }, 10000);

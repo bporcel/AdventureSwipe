@@ -103,7 +103,6 @@ export default function GameScreen() {
 
     async function handleChoice(choice) {
         if (node.isEnding) {
-            // if (true) {
             play(END_MUSIC);
             setShowEnd(true);
             return;
