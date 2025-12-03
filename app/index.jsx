@@ -1,6 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, ImageBackground, Pressable, StyleSheet, Text, View } from "react-native";
+import { Animated, ImageBackground, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useAudio } from "../common/AudioContext";
 import { loadSave } from "../common/storage";
 import AudioControl from "./components/AudioControl";
@@ -90,8 +91,14 @@ export default function StartScreen() {
           </Animated.View>
         )}
         <View style={styles.secondary}>
-          <Text style={styles.link}>Settings</Text>
-          <Text style={styles.link}>About</Text>
+          <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/screens/SettingsScreen")}>
+            <Ionicons name="settings-outline" size={20} color="#E1E1E1" />
+            <Text style={styles.secondaryButtonText}>Settings</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/screens/AboutScreen")}>
+            <Ionicons name="information-circle-outline" size={20} color="#E1E1E1" />
+            <Text style={styles.secondaryButtonText}>About</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ImageBackground>
@@ -164,12 +171,24 @@ const styles = StyleSheet.create({
   },
   secondary: {
     marginTop: 40,
-    alignItems: "center",
-    gap: 12,
+    flexDirection: 'row',
+    gap: 20,
+    justifyContent: 'center',
   },
-  link: {
-    color: "#888",
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  secondaryButtonText: {
+    color: '#E1E1E1',
     fontSize: 16,
-    textDecorationLine: "underline",
+    fontWeight: '500',
   },
 });

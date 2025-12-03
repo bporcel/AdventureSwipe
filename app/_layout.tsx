@@ -9,6 +9,8 @@ export default function RootLayout() {
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="game" options={{ headerShown: false }} />
+          <Stack.Screen name="screens/SettingsScreen" options={{ headerShown: false }} />
+          <Stack.Screen name="screens/AboutScreen" options={{ headerShown: false }} />
         </Stack>
       </AudioProvider>
     </GestureHandlerRootView>
