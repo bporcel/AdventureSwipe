@@ -7,7 +7,7 @@ export default function ObjectiveIndicator({ score = 50 }) {
     const progress = useSharedValue(score);
 
     useEffect(() => {
-        progress.value = withSpring(score, { damping: 15, stiffness: 100 });
+        progress.value = withSpring(score, { damping: 50, stiffness: 400 });
     }, [score]);
 
     const animatedStyle = useAnimatedStyle(() => {

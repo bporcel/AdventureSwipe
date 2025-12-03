@@ -140,7 +140,7 @@ export default function GameScreen() {
     }
 
     if (showEnd) {
-        return <EndScreen onBackToMenu={onExit} onClose={onExit} history={history} backgroundImage={node.image} onRestart={onNewGame} />
+        return <EndScreen onBackToMenu={onExit} onClose={onExit} history={history} backgroundImage={node.image} onRestart={onNewGame} endingType={node.endingType} />
     }
 
     return (

@@ -136,7 +136,7 @@ async function generateNodeForChoice({ currentNode = null, choice = 'start', his
     const story = await getStory(prompt, signal);
     const message = story.choices[0].message.content;
     const match = message.match(/\{[\s\S]*\}/);
-    const json = match ? JSON.parse(match[0]) : { text: message, image: "", choices: { left: "Left", right: "Right" }, isEnding: false, objectiveScore: 50 };
+    const json = match ? JSON.parse(match[0]) : { text: message, image: "", choices: { left: "Left", right: "Right" }, isEnding: false, endingType: "neutral", objectiveScore: 50 };
 
     const imgKey = crypto.createHash("sha256").update(json.image).digest("hex");
     let imageUrl = imageCache.get(imgKey);
@@ -160,6 +160,7 @@ async function generateNodeForChoice({ currentNode = null, choice = 'start', his
             left: json.choices.left,
         },
         isEnding: json.isEnding,
+        endingType: json.endingType || "neutral",
         objectiveScore: json.objectiveScore || 50
     }
 
@@ -285,6 +286,7 @@ function buildTestResult() {
         },
         depth: 0,
         isEnding: false,
+        endingType: "neutral",
         objectiveScore: 50
     }
 }

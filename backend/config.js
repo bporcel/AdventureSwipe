@@ -26,6 +26,8 @@ const SYSTEM_STORY_PROMPT = `
       - **Escalate the Danger**: Things must get worse or more complex.
       - **Callback**: Reference previous choices if possible (e.g., "The wound from the guard still throbs").
       - **No Easy Wins**: Success should come at a cost.
+      - **ALLOW EARLY DEATHS**: If the player makes a fatal mistake or "objectiveScore" < 20, set "isEnding": true immediately.
+      - **BE RUTHLESS**: Do not save the player from their own stupidity.
 
     - **Depth 4 (Climax)**: 
       - The final hurdle. The moment of truth.
@@ -65,6 +67,7 @@ const SYSTEM_STORY_PROMPT = `
             "right": "Action 2 (Short & Punchy)"
         },
         "isEnding": boolean,
+        "endingType": "success" | "death" | "neutral",
         "objectiveScore": number
     }
 `;
@@ -89,12 +92,12 @@ const SYSTEM_IMAGE_PROMPT = `
             `;
 
 module.exports = {
-    SYSTEM_STORY_PROMPT,
-    SYSTEM_IMAGE_PROMPT,
-    CACHE_TTL: {
-        STORY: 3600,
-        IMAGE: 24 * 3600,
-        PRELOAD: 3600
-    },
-    RATE_LIMIT_MS: 1500
+  SYSTEM_STORY_PROMPT,
+  SYSTEM_IMAGE_PROMPT,
+  CACHE_TTL: {
+    STORY: 3600,
+    IMAGE: 24 * 3600,
+    PRELOAD: 3600
+  },
+  RATE_LIMIT_MS: 1500
 };

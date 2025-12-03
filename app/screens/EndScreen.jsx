@@ -50,7 +50,7 @@ const BackgroundImage = ({ uri, index, scrollY, layout }) => {
     );
 };
 
-export default function StoryEndScreen({ history, onBackToMenu, onRestart }) {
+export default function StoryEndScreen({ history, onBackToMenu, onRestart, endingType = 'neutral' }) {
     const scrollY = useSharedValue(0);
     const [layouts, setLayouts] = useState({});
 
@@ -88,7 +88,9 @@ export default function StoryEndScreen({ history, onBackToMenu, onRestart }) {
                     onScroll={scrollHandler}
                     scrollEventThrottle={16}
                 >
-                    <Text style={styles.title}>The End</Text>
+                    <Text style={[styles.title, endingType === 'death' && styles.deathTitle]}>
+                        {endingType === 'death' ? 'YOU DIED' : 'The End'}
+                    </Text>
 
                     <View style={styles.storyWrapper}>
                         {history.map((node, index) => (
@@ -198,4 +200,8 @@ const styles = StyleSheet.create({
         letterSpacing: 1,
         textTransform: "uppercase",
     },
+    deathTitle: {
+        color: '#e74c3c',
+        textShadowColor: "rgba(231, 76, 60, 0.5)",
+    }
 });
