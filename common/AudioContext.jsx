@@ -1,5 +1,6 @@
 import { useAudioPlayer } from 'expo-audio';
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 
 const AudioContext = createContext(null);
 
@@ -38,6 +39,29 @@ export const AudioProvider = ({ children }) => {
             player.play();
         }
     }, [player]);
+
+    // Handle AppState changes (background/foreground)
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', nextAppState => {
+            if (nextAppState === 'active') {
+                // Resume if it was playing before going to background
+                // We assume if we have a player and it's not muted, we want to resume
+                // A more robust way would be to track "wasPlaying" state
+                if (player && !isMuted) {
+                    player.play();
+                }
+            } else if (nextAppState.match(/inactive|background/)) {
+                // Pause when going to background
+                if (player) {
+                    player.pause();
+                }
+            }
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, [player, isMuted]);
 
     const play = useCallback((source) => {
         if (!player) return;

@@ -1,7 +1,7 @@
 import { Dimensions } from 'react-native';
 import { Gesture } from 'react-native-gesture-handler';
-import { useSharedValue, withSpring, withTiming, interpolate, Extrapolation, useAnimatedStyle } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets'
+import { Extrapolation, interpolate, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 const END_POSITION = 200;
 const SCREEN_WIDTH = Dimensions.get('window').width;
