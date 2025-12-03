@@ -19,6 +19,7 @@ import { clearAllImages } from "../common/imageStorage";
 import { clearSave, loadSave, saveGame } from "../common/storage";
 import AudioControl from './components/AudioControl';
 import LoadingRune from './components/LoadingRune';
+import ObjectiveIndicator from './components/ObjectiveIndicator';
 import SwipeableCard from './components/SwipeableCard';
 import EndScreen from "./screens/EndScreen";
 import HistoryScreen from "./screens/HistoryScreen";
@@ -38,7 +39,8 @@ const INITIAL_NODE = {
         left: ""
     },
     depth: 0,
-    isEnding: false
+    isEnding: false,
+    objectiveScore: 50
 };
 
 export default function GameScreen() {
@@ -158,6 +160,7 @@ export default function GameScreen() {
             </View>
 
             <View style={styles.bottom}>
+                <ObjectiveIndicator score={node.objectiveScore} />
                 {loading ? (
                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                         <LoadingRune />

@@ -45,6 +45,15 @@ const SYSTEM_STORY_PROMPT = `
     - If the location hasn't changed, explicitly repeat the key environmental details in the "image" prompt to maintain consistency.
 
     ────────────────────────
+    OBJECTIVE TRACKING
+    ────────────────────────
+    - You must track an "objectiveScore" (0-100).
+    - 0 = Complete Failure / Evil / Far from goal.
+    - 100 = Perfect Success / Good / Close to goal.
+    - 50 = Neutral / Start.
+    - Update this score based on the player's choices.
+
+    ────────────────────────
     RESPONSE FORMAT
     ────────────────────────
     Return ONLY valid JSON:
@@ -55,7 +64,8 @@ const SYSTEM_STORY_PROMPT = `
             "left": "Action 1 (Short & Punchy)",
             "right": "Action 2 (Short & Punchy)"
         },
-        "isEnding": boolean
+        "isEnding": boolean,
+        "objectiveScore": number
     }
 `;
 
