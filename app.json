@@ -16,10 +16,8 @@
       "package": "com.bporcel.adventureswipe",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#1a0b2e"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false

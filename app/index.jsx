@@ -55,7 +55,7 @@ export default function StartScreen() {
 
   return (
     <ImageBackground
-      source={require("../assets/images/start-bg.jpg")}
+      source={require("../assets/images/index-bg.png")}
       style={styles.bg}
       resizeMode="cover"
       imageStyle={{ opacity: 0.75 }}
