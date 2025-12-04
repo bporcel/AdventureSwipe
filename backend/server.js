@@ -8,6 +8,7 @@ require("./mjs/instrument.js");
 const express = require("express");
 const gameRoutes = require("./routes/gameRoutes");
 const Sentry = require("@sentry/node");
+const logger = require("./utils/logger");
 
 const app = express();
 
@@ -42,5 +43,5 @@ app.use(function onError(err, req, res, next) {
 });
 
 app.listen(process.env.PORT || 5000, () =>
-    console.log(`✅ ${process.env.NODE_ENV} environment => Backend running on port ${process.env.PORT || 5000}`)
+    logger.info(`✅ ${process.env.NODE_ENV} environment => Backend running on port ${process.env.PORT || 5000}`)
 );

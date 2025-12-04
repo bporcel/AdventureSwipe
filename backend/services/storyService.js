@@ -1,4 +1,6 @@
 const OpenAI = require("openai");
+const { generateImage } = require("./imageService");
+const logger = require("../utils/logger");
 const NodeCache = require("node-cache");
 const crypto = require("crypto");
 const { SYSTEM_STORY_PROMPT, CACHE_TTL } = require("../config");
@@ -10,7 +12,7 @@ const openai = new OpenAI({
 const storyCache = new NodeCache({ stdTTL: CACHE_TTL.STORY }); // cached story nodes by prompt hash
 
 const createPrompt = (recentHistory, currentNode, choice, forcedPrompt, depth) => {
-    console.log("DEPTH => ", depth)
+    logger.info(`DEPTH => ${depth}`);
     const prompt = forcedPrompt || `
     Previous scenes: ${recentHistory}
     Current scene: ${currentNode.text}
@@ -25,7 +27,7 @@ const createPrompt = (recentHistory, currentNode, choice, forcedPrompt, depth) =
 }
 
 const getStory = async (prompt, signal) => {
-    console.log("Generating new user story:");
+    logger.info("Generating new user story:");
     return await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [

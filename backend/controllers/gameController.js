@@ -1,4 +1,5 @@
 const gameService = require("../services/gameService");
+const logger = require("../utils/logger");
 const { buildTestResult } = require("../utils/testUtils");
 
 const nextScene = async (req, res) => {
@@ -14,7 +15,7 @@ const nextScene = async (req, res) => {
         }
 
         if (currentNode.isEnding === true) {
-            console.log('ending reached');
+            logger.info('ending reached');
             res.json(currentNode);
             return;
         };
@@ -36,13 +37,13 @@ const nextScene = async (req, res) => {
                 // Check if we have a pending preload for THIS choice
                 const pendingPreload = gameService.getPendingPreload(preloadKey);
                 if (pendingPreload) {
-                    console.log(`⚡ Joining pending preload for ${preloadKey}`);
+                    logger.info(`⚡ Joining pending preload for ${preloadKey}`);
                     result = await pendingPreload.promise;
                 } else {
                     result = gameService.getPreload(preloadKey);
-                    console.log(preloadKey)
+                    logger.info(preloadKey)
                     if (result) {
-                        console.log(`⚡ Returning preloaded node for ${preloadKey}`);
+                        logger.info(`⚡ Returning preloaded node for ${preloadKey}`);
                     } else {
                         result = await gameService.generateNodeForChoice({ currentNode, choice, history, depth });
                     }

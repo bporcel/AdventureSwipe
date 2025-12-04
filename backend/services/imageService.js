@@ -1,4 +1,5 @@
 const { GoogleGenAI } = require("@google/genai");
+const logger = require("../utils/logger");
 const NodeCache = require("node-cache");
 const Bottleneck = require("bottleneck");
 const crypto = require("crypto");
@@ -12,7 +13,7 @@ const imageCache = new NodeCache({ stdTTL: CACHE_TTL.IMAGE }); // cached images 
 const limiter = new Bottleneck({ minTime: RATE_LIMIT_MS });  // at least 1.5s between image requests
 
 const getImage = async (prompt, referenceImage, inventory = []) => {
-    console.log("🖼️ Generating new Gemini image:");
+    logger.info("🖼️ Generating new Gemini image:");
     if (process.env.NODE_ENV === 'test_gpt') return;
 
     return await limiter.schedule(async () => {
@@ -49,7 +50,7 @@ const getImage = async (prompt, referenceImage, inventory = []) => {
                 }
             }
         }).catch(err => {
-            console.error("Gemini API Error:", err);
+            logger.error("Gemini API Error:", err);
             return null; // Return null on image generation failure to allow story to proceed without image
         });
     });

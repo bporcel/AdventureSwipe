@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const { CACHE_TTL } = require("../config");
 const storyService = require("./storyService");
 const imageService = require("./imageService");
+const logger = require("../utils/logger");
 
 const preloadCache = new NodeCache({ stdTTL: CACHE_TTL.PRELOAD }); // preloaded nodes keyed by `${nodeId}:${choice}`
 const pendingPreloads = new Map(); // Key: `${nodeId}:${choice}`, Value: { promise, controller }
@@ -65,11 +66,11 @@ async function preloadChoice(currentNode, choice, history = [], depth) {
         const preloadKey = `${currentNode.id}:${choice}`;
 
         if (preloadCache.get(preloadKey) || pendingPreloads.has(preloadKey)) {
-            console.log(`🗃️ Preload already exists or pending for ${preloadKey}`);
+            logger.info(`🗃️ Preload already exists or pending for ${preloadKey}`);
             return;
         }
 
-        console.log(`⏱️ Preloading branch [${choice}] for node ${preloadKey}`);
+        logger.info(`⏱️ Preloading branch [${choice}] for node ${preloadKey}`);
 
         const controller = new AbortController();
         const promise = generateNodeForChoice({ currentNode, choice, history, depth, signal: controller.signal });
@@ -79,10 +80,10 @@ async function preloadChoice(currentNode, choice, history = [], depth) {
         try {
             const node = await promise;
             preloadCache.set(preloadKey, node);
-            console.log(`✅ Node ${preloadKey} stored in cache`);
+            logger.info(`✅ Node ${preloadKey} stored in cache`);
         } catch (err) {
             if (err.name === 'AbortError' || err.name === 'APIUserAbortError') {
-                console.log(`🛑 Preload aborted for ${preloadKey}`);
+                logger.info(`🛑 Preload aborted for ${preloadKey}`);
             } else {
                 console.error("Preload error:", err);
             }
@@ -104,7 +105,7 @@ function getPendingPreload(key) {
 
 function cancelPreload(key) {
     if (pendingPreloads.has(key)) {
-        console.log(`🗑️ Cancelling unchosen preload: ${key}`);
+        logger.info(`🗑️ Cancelling unchosen preload: ${key}`);
         pendingPreloads.get(key).controller.abort();
     }
 }
