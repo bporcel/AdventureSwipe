@@ -12,7 +12,7 @@ export default function StartScreen() {
   const startScaleAnim = useRef(new Animated.Value(1)).current;
   const loadScaleAnim = useRef(new Animated.Value(1)).current;
   const { play } = useAudio();
-  const START_MUSIC = 'https://musicfile.api.box/MmQyYzNlYjAtZWRjMC00OTNiLWFlNjQtNmFiZDg5NTQyMTgy.mp3';
+  const START_MUSIC = require('../assets/audio/start_music.mp3');
 
   useFocusEffect(
     useCallback(() => {

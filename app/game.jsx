@@ -59,8 +59,8 @@ export default function GameScreen() {
     const [showHistory, setShowHistory] = useState(false);
     const [showEnd, setShowEnd] = useState(false);
     const { play } = useAudio();
-    const GAME_MUSIC = 'https://musicfile.api.box/YzA3ZjcwYjgtNWRlNy00MTg4LWI4NjItYjY2ZTZiNGFiYjA1.mp3';
-    const END_MUSIC = 'https://musicfile.api.box/NzI4MGZkODMtOWI2My00ZmM0LThiOTctNzFlMjMwNzE1YTg2.mp3';
+    const GAME_MUSIC = require('../assets/audio/game_music.mp3');
+    const END_MUSIC = require('../assets/audio/end_music.mp3');
 
 
     const depth = useRef(0);
