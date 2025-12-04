@@ -1,8 +1,16 @@
 import { Stack } from "expo-router";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AudioProvider } from "../common/AudioContext";
+import * as Sentry from '@sentry/react-native';
 
-export default function RootLayout() {
+Sentry.init({
+  dsn: 'https://f7d306951f7af1475916731ab818ae67@o4510473220718592.ingest.de.sentry.io/4510473222422608',
+  sendDefaultPii: true,
+  enableLogs: true,
+  debug: true,
+});
+
+export default Sentry.wrap(function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AudioProvider>
@@ -15,4 +23,4 @@ export default function RootLayout() {
       </AudioProvider>
     </GestureHandlerRootView>
   );
-}
+});

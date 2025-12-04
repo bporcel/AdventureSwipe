@@ -44,6 +44,14 @@
       ],
       [
         "expo-audio"
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "adventure-swipe",
+          "organization": "bruno-52"
+        }
       ]
     ],
     "experiments": {

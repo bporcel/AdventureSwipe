@@ -61,12 +61,10 @@ export default function StartScreen() {
       imageStyle={{ opacity: 0.75 }}
     >
       <View style={styles.overlay} />
-
       <View style={styles.container}>
         <AudioControl style={styles.audioControl} />
         <Text style={styles.title}>AdventureSwipe</Text>
         <Text style={styles.tagline}>Shape your fate with a single swipe</Text>
-
         <Animated.View style={{ transform: [{ scale: startScaleAnim }], marginBottom: 20 }}>
           <Pressable
             onPress={onStart}
