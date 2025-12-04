@@ -6,8 +6,6 @@ import * as Sentry from '@sentry/react-native';
 Sentry.init({
   dsn: 'https://f7d306951f7af1475916731ab818ae67@o4510473220718592.ingest.de.sentry.io/4510473222422608',
   sendDefaultPii: true,
-  enableLogs: true,
-  debug: true,
 });
 
 export default Sentry.wrap(function RootLayout() {

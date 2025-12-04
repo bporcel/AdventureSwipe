@@ -9,6 +9,7 @@
     },
     "dependencies": {
         "@google/genai": "^1.29.1",
+        "@sentry/node": "^10.28.0",
         "bottleneck": "^2.19.5",
         "cors": "^2.8.5",
         "dotenv": "^16.6.1",
